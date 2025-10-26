@@ -1,6 +1,7 @@
 """Observations tab manager for the observation log application."""
 
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
+from PyQt6.QtCore import QStringListModel
 from PyQt6 import uic
 
 from dialogs import EditObservationDialog
@@ -33,6 +34,7 @@ class ObservationsTabManager:
         
         # Store references
         self.observations_table = observation_widget.findChild(QWidget, "observationsTable")
+        self.observation_filter_list_view = observation_widget.findChild(QWidget, "observationFilterListView")
         self.session_id_combo_box = observation_widget.findChild(QWidget, "sessionIdComboBox")
         self.object_combo_box = observation_widget.findChild(QWidget, "objectComboBox")
         self.camera_combo_box = observation_widget.findChild(QWidget, "cameraComboBox")
@@ -44,11 +46,16 @@ class ObservationsTabManager:
         self.add_observation_button = observation_widget.findChild(QWidget, "addObservationButton")
         self.edit_observation_button = observation_widget.findChild(QWidget, "editObservationButton")
         self.delete_observation_button = observation_widget.findChild(QWidget, "deleteObservationButton")
+
+        # Setup filter list view
+        self.filter_model = QStringListModel()
+        self.observation_filter_list_view.setModel(self.filter_model)
         
         # Connect signals
         self.add_observation_button.clicked.connect(self.add_observation)
         self.edit_observation_button.clicked.connect(self.edit_observation)
         self.delete_observation_button.clicked.connect(self.delete_observation)
+        self.observation_filter_list_view.selectionModel().currentChanged.connect(self.filter_observations)
         
         # Hide ID column
         self.observations_table.setColumnHidden(0, True)
@@ -64,6 +71,7 @@ class ObservationsTabManager:
         
         self.load_observations()
         self.update_observation_combos()
+        self.update_filter_list()
     
     def update_observation_combos(self):
         """Update all combo boxes in the observations tab."""
@@ -73,25 +81,25 @@ class ObservationsTabManager:
             self.session_id_combo_box.clear()
             for session in sessions:
                 self.session_id_combo_box.addItem(session['session_id'])
-            
+
             # Update Object combo
             objects = self.db.get_all_objects()
             self.object_combo_box.clear()
             for obj in objects:
                 self.object_combo_box.addItem(obj['name'])
-            
+
             # Update Camera combo
             cameras = self.db.get_all_cameras()
             self.camera_combo_box.clear()
             for camera in cameras:
                 self.camera_combo_box.addItem(camera['name'])
-            
+
             # Update Telescope combo
             telescopes = self.db.get_all_telescopes()
             self.telescope_combo_box.clear()
             for telescope in telescopes:
                 self.telescope_combo_box.addItem(telescope['name'])
-            
+
             # Update Filter combo
             filters = self.db.get_all_filters()
             self.filter_combo_box.clear()
@@ -99,13 +107,29 @@ class ObservationsTabManager:
                 self.filter_combo_box.addItem(filt['name'])
         except Exception as e:
             QMessageBox.critical(self.parent, 'Error', f'Failed to update observation combos: {str(e)}')
-    
-    def load_observations(self):
-        """Load all observations from database and display in table."""
+
+    def update_filter_list(self):
+        """Update the filter list view with unique object names from observations."""
         try:
             observations = self.db.get_all_observations()
+            unique_objects = set(obs['object_name'] for obs in observations)
+            filter_items = ['< All Names >'] + sorted(list(unique_objects))
+            self.filter_model.setStringList(filter_items)
+            # Set default selection to "< All Names >"
+            self.observation_filter_list_view.setCurrentIndex(self.filter_model.index(0, 0))
+        except Exception as e:
+            QMessageBox.critical(self.parent, 'Error', f'Failed to update filter list: {str(e)}')
+    
+    def load_observations(self, object_filter=None):
+        """Load observations from database and display in table, optionally filtered by object name."""
+        try:
+            if object_filter == '< All Names >' or object_filter is None:
+                observations = self.db.get_all_observations()
+            else:
+                observations = [obs for obs in self.db.get_all_observations() if obs['object_name'] == object_filter]
+
             self.observations_table.setRowCount(len(observations))
-            
+
             for row, obs in enumerate(observations):
                 self.observations_table.setItem(row, 0, QTableWidgetItem(str(obs['id'])))
                 self.observations_table.setItem(row, 1, QTableWidgetItem(obs['session_id']))
@@ -117,7 +141,7 @@ class ObservationsTabManager:
                 self.observations_table.setItem(row, 7, QTableWidgetItem(str(obs['exposure_length'])))
                 self.observations_table.setItem(row, 8, QTableWidgetItem(str(obs['total_exposure'])))
                 self.observations_table.setItem(row, 9, QTableWidgetItem(obs['comments'] or ''))
-            
+
             self.statusbar.showMessage(f'Loaded {len(observations)} observation(s)')
         except Exception as e:
             QMessageBox.critical(self.parent, 'Error', f'Failed to load observations: {str(e)}')
@@ -146,11 +170,14 @@ class ObservationsTabManager:
         
         try:
             self.db.add_observation(session_id, object_name, camera_name, telescope_name,
-                                   filter_name, image_count, exposure_length, comments)
+                                    filter_name, image_count, exposure_length, comments)
             self.image_count_spin_box.setValue(0)
             self.exposure_length_spin_box.setValue(0)
             self.comments_line_edit.clear()
-            self.load_observations()
+            # Reload with current filter
+            current_filter = self.get_current_filter()
+            self.load_observations(current_filter)
+            self.update_filter_list()  # Update filter list in case new object was added
             self.statusbar.showMessage(f'Added observation for {object_name}')
         except Exception as e:
             QMessageBox.critical(self.parent, 'Error', f'Failed to add observation: {str(e)}')
@@ -192,9 +219,12 @@ class ObservationsTabManager:
                 image_count, exposure_length, comments = dialog.get_values()
             try:
                 self.db.update_observation(observation_id, session_id, object_name,
-                                          camera_name, telescope_name, filter_name,
-                                          image_count, exposure_length, comments)
-                self.load_observations()
+                                           camera_name, telescope_name, filter_name,
+                                           image_count, exposure_length, comments)
+                # Reload with current filter
+                current_filter = self.get_current_filter()
+                self.load_observations(current_filter)
+                self.update_filter_list()  # Update filter list in case object name changed
                 self.statusbar.showMessage(f'Updated observation ID {observation_id}')
             except Exception as e:
                 QMessageBox.critical(self.parent, 'Error', f'Failed to update observation: {str(e)}')
@@ -202,26 +232,42 @@ class ObservationsTabManager:
     def delete_observation(self):
         """Delete the selected observation."""
         selected_rows = self.observations_table.selectedItems()
-        
+
         if not selected_rows:
             QMessageBox.warning(self.parent, 'Warning', 'Please select an observation to delete.')
             return
-        
+
         row = self.observations_table.currentRow()
         observation_id = int(self.observations_table.item(row, 0).text())
         object_name = self.observations_table.item(row, 2).text()
-        
+
         reply = QMessageBox.question(
             self.parent, 'Confirm Deletion',
             f'Are you sure you want to delete observation for "{object_name}"?',
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No
         )
-        
+
         if reply == QMessageBox.StandardButton.Yes:
             try:
                 self.db.delete_observation(observation_id)
-                self.load_observations()
+                # Reload with current filter
+                current_filter = self.get_current_filter()
+                self.load_observations(current_filter)
                 self.statusbar.showMessage(f'Deleted observation for {object_name}')
             except Exception as e:
                 QMessageBox.critical(self.parent, 'Error', f'Failed to delete observation: {str(e)}')
+
+    def filter_observations(self, current, previous):
+        """Filter observations based on selected object name."""
+        selected_index = current
+        if selected_index.isValid():
+            selected_text = self.filter_model.data(selected_index, 0)
+            self.load_observations(selected_text)
+
+    def get_current_filter(self):
+        """Get the currently selected filter."""
+        current_index = self.observation_filter_list_view.currentIndex()
+        if current_index.isValid():
+            return self.filter_model.data(current_index, 0)
+        return '< All Names >'
