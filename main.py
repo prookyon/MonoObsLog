@@ -140,6 +140,69 @@ class EditTelescopeDialog(QDialog):
         return (self.name_edit.text(), self.aperture_spin.value(), 
                 self.f_ratio_spin.value(), self.focal_length_spin.value())
 
+class EditObservationDialog(QDialog):
+    """Dialog for editing observation data."""
+    def __init__(self, session_id, object_name, camera_name, telescope_name, 
+                 filter_name, image_count, exposure_length, comments,
+                 sessions, objects, cameras, telescopes, filters, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Edit Observation")
+        
+        layout = QFormLayout()
+        
+        self.session_combo = QComboBox()
+        self.session_combo.addItems(sessions)
+        self.session_combo.setCurrentText(session_id)
+        
+        self.object_combo = QComboBox()
+        self.object_combo.addItems(objects)
+        self.object_combo.setCurrentText(object_name)
+        
+        self.camera_combo = QComboBox()
+        self.camera_combo.addItems(cameras)
+        self.camera_combo.setCurrentText(camera_name)
+        
+        self.telescope_combo = QComboBox()
+        self.telescope_combo.addItems(telescopes)
+        self.telescope_combo.setCurrentText(telescope_name)
+        
+        self.filter_combo = QComboBox()
+        self.filter_combo.addItems(filters)
+        self.filter_combo.setCurrentText(filter_name)
+        
+        self.image_count_spin = QSpinBox()
+        self.image_count_spin.setMaximum(99999)
+        self.image_count_spin.setValue(image_count)
+        
+        self.exposure_spin = QSpinBox()
+        self.exposure_spin.setMaximum(99999)
+        self.exposure_spin.setValue(exposure_length)
+        
+        self.comments_edit = QLineEdit(comments)
+        
+        layout.addRow("Session ID:", self.session_combo)
+        layout.addRow("Object:", self.object_combo)
+        layout.addRow("Camera:", self.camera_combo)
+        layout.addRow("Telescope:", self.telescope_combo)
+        layout.addRow("Filter:", self.filter_combo)
+        layout.addRow("Image Count:", self.image_count_spin)
+        layout.addRow("Exposure Length (s):", self.exposure_spin)
+        layout.addRow("Comments:", self.comments_edit)
+        
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addRow(buttons)
+        
+        self.setLayout(layout)
+    
+    def get_values(self):
+        return (self.session_combo.currentText(), self.object_combo.currentText(),
+                self.camera_combo.currentText(), self.telescope_combo.currentText(),
+                self.filter_combo.currentText(), self.image_count_spin.value(),
+                self.exposure_spin.value(), self.comments_edit.text())
+
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -158,6 +221,7 @@ class MainWindow(QMainWindow):
         self.setup_filter_types_tab()
         self.setup_filters_tab()
         self.setup_telescopes_tab()
+        self.setup_observations_tab()
         
         # Set status bar message
         self.statusbar.showMessage('Ready')
@@ -169,8 +233,9 @@ class MainWindow(QMainWindow):
         self.deleteButton.clicked.connect(self.delete_object)
         self.nameLineEdit.returnPressed.connect(self.add_object)
         
-        self.objectsTable.setColumnWidth(0, 50)
-        self.objectsTable.setColumnWidth(1, 400)
+        # Hide ID column
+        self.objectsTable.setColumnHidden(0, True)
+        self.objectsTable.setColumnWidth(1, 600)
         
         self.load_objects()
     
@@ -197,9 +262,10 @@ class MainWindow(QMainWindow):
         self.deleteSessionButton.clicked.connect(self.delete_session)
         self.sessionIdLineEdit.returnPressed.connect(self.add_session)
         
-        self.sessionsTable.setColumnWidth(0, 50)
-        self.sessionsTable.setColumnWidth(1, 200)
-        self.sessionsTable.setColumnWidth(2, 200)
+        # Hide ID column
+        self.sessionsTable.setColumnHidden(0, True)
+        self.sessionsTable.setColumnWidth(1, 300)
+        self.sessionsTable.setColumnWidth(2, 300)
         
         self.load_sessions()
     
@@ -226,12 +292,13 @@ class MainWindow(QMainWindow):
         self.deleteCameraButton.clicked.connect(self.delete_camera)
         self.cameraNameLineEdit.returnPressed.connect(self.add_camera)
         
-        self.camerasTable.setColumnWidth(0, 40)
-        self.camerasTable.setColumnWidth(1, 150)
-        self.camerasTable.setColumnWidth(2, 150)
-        self.camerasTable.setColumnWidth(3, 80)
-        self.camerasTable.setColumnWidth(4, 80)
-        self.camerasTable.setColumnWidth(5, 80)
+        # Hide ID column
+        self.camerasTable.setColumnHidden(0, True)
+        self.camerasTable.setColumnWidth(1, 180)
+        self.camerasTable.setColumnWidth(2, 180)
+        self.camerasTable.setColumnWidth(3, 100)
+        self.camerasTable.setColumnWidth(4, 100)
+        self.camerasTable.setColumnWidth(5, 100)
         
         self.load_cameras()
     
@@ -254,8 +321,9 @@ class MainWindow(QMainWindow):
         self.deleteFilterTypeButton.clicked.connect(self.delete_filter_type)
         self.filterTypeNameLineEdit.returnPressed.connect(self.add_filter_type)
         
-        self.filterTypesTable.setColumnWidth(0, 50)
-        self.filterTypesTable.setColumnWidth(1, 400)
+        # Hide ID column
+        self.filterTypesTable.setColumnHidden(0, True)
+        self.filterTypesTable.setColumnWidth(1, 600)
         
         self.load_filter_types()
     
@@ -279,9 +347,10 @@ class MainWindow(QMainWindow):
         self.deleteFilterButton.clicked.connect(self.delete_filter)
         self.filterNameLineEdit.returnPressed.connect(self.add_filter)
         
-        self.filtersTable.setColumnWidth(0, 50)
-        self.filtersTable.setColumnWidth(1, 250)
-        self.filtersTable.setColumnWidth(2, 250)
+        # Hide ID column
+        self.filtersTable.setColumnHidden(0, True)
+        self.filtersTable.setColumnWidth(1, 350)
+        self.filtersTable.setColumnWidth(2, 350)
         
         self.load_filters()
         self.update_filter_type_combo()
@@ -308,16 +377,56 @@ class MainWindow(QMainWindow):
         self.deleteTelescopeButton.clicked.connect(self.delete_telescope)
         self.telescopeNameLineEdit.returnPressed.connect(self.add_telescope)
         
-        self.telescopesTable.setColumnWidth(0, 40)
-        self.telescopesTable.setColumnWidth(1, 150)
-        self.telescopesTable.setColumnWidth(2, 100)
-        self.telescopesTable.setColumnWidth(3, 100)
-        self.telescopesTable.setColumnWidth(4, 120)
+        # Hide ID column
+        self.telescopesTable.setColumnHidden(0, True)
+        self.telescopesTable.setColumnWidth(1, 200)
+        self.telescopesTable.setColumnWidth(2, 120)
+        self.telescopesTable.setColumnWidth(3, 120)
+        self.telescopesTable.setColumnWidth(4, 140)
         
         self.load_telescopes()
     
     # ==================== Object Methods ====================
     
+    
+    def setup_observations_tab(self):
+        """Setup the Observations tab."""
+        observation_widget = QWidget()
+        uic.loadUi('observation_tab.ui', observation_widget)
+        self.tabWidget.addTab(observation_widget, "Observations")
+        
+        # Store references
+        self.observationsTable = observation_widget.findChild(QWidget, "observationsTable")
+        self.sessionIdComboBox = observation_widget.findChild(QWidget, "sessionIdComboBox")
+        self.objectComboBox = observation_widget.findChild(QWidget, "objectComboBox")
+        self.cameraComboBox = observation_widget.findChild(QWidget, "cameraComboBox")
+        self.telescopeComboBox = observation_widget.findChild(QWidget, "telescopeComboBox")
+        self.filterComboBox = observation_widget.findChild(QWidget, "filterComboBox")
+        self.imageCountSpinBox = observation_widget.findChild(QWidget, "imageCountSpinBox")
+        self.exposureLengthSpinBox = observation_widget.findChild(QWidget, "exposureLengthSpinBox")
+        self.commentsLineEdit = observation_widget.findChild(QWidget, "commentsLineEdit")
+        self.addObservationButton = observation_widget.findChild(QWidget, "addObservationButton")
+        self.editObservationButton = observation_widget.findChild(QWidget, "editObservationButton")
+        self.deleteObservationButton = observation_widget.findChild(QWidget, "deleteObservationButton")
+        
+        # Connect signals
+        self.addObservationButton.clicked.connect(self.add_observation)
+        self.editObservationButton.clicked.connect(self.edit_observation)
+        self.deleteObservationButton.clicked.connect(self.delete_observation)
+        
+        # Hide ID column
+        self.observationsTable.setColumnHidden(0, True)
+        self.observationsTable.setColumnWidth(1, 100)  # Session ID
+        self.observationsTable.setColumnWidth(2, 100)  # Object
+        self.observationsTable.setColumnWidth(3, 100)  # Camera
+        self.observationsTable.setColumnWidth(4, 100)  # Telescope
+        self.observationsTable.setColumnWidth(5, 80)   # Filter
+        self.observationsTable.setColumnWidth(6, 60)   # Images
+        self.observationsTable.setColumnWidth(7, 80)   # Exposure
+        self.observationsTable.setColumnWidth(8, 200)  # Comments
+        
+        self.load_observations()
+        self.update_observation_combos()
     def load_objects(self):
         """Load all objects from database and display in table."""
         try:
@@ -867,6 +976,165 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, 'Error', f'Failed to delete telescope: {str(e)}')
     
+    # ==================== Observation Methods ====================
+    
+    def update_observation_combos(self):
+        """Update all combo boxes in the observations tab."""
+        try:
+            # Update Session ID combo
+            sessions = self.db.get_all_sessions()
+            self.sessionIdComboBox.clear()
+            for session in sessions:
+                self.sessionIdComboBox.addItem(session['session_id'])
+            
+            # Update Object combo
+            objects = self.db.get_all_objects()
+            self.objectComboBox.clear()
+            for obj in objects:
+                self.objectComboBox.addItem(obj['name'])
+            
+            # Update Camera combo
+            cameras = self.db.get_all_cameras()
+            self.cameraComboBox.clear()
+            for camera in cameras:
+                self.cameraComboBox.addItem(camera['name'])
+            
+            # Update Telescope combo
+            telescopes = self.db.get_all_telescopes()
+            self.telescopeComboBox.clear()
+            for telescope in telescopes:
+                self.telescopeComboBox.addItem(telescope['name'])
+            
+            # Update Filter combo
+            filters = self.db.get_all_filters()
+            self.filterComboBox.clear()
+            for filt in filters:
+                self.filterComboBox.addItem(filt['name'])
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', f'Failed to update observation combos: {str(e)}')
+    
+    def load_observations(self):
+        """Load all observations from database and display in table."""
+        try:
+            observations = self.db.get_all_observations()
+            self.observationsTable.setRowCount(len(observations))
+            
+            for row, obs in enumerate(observations):
+                self.observationsTable.setItem(row, 0, QTableWidgetItem(str(obs['id'])))
+                self.observationsTable.setItem(row, 1, QTableWidgetItem(obs['session_id']))
+                self.observationsTable.setItem(row, 2, QTableWidgetItem(obs['object_name']))
+                self.observationsTable.setItem(row, 3, QTableWidgetItem(obs['camera_name']))
+                self.observationsTable.setItem(row, 4, QTableWidgetItem(obs['telescope_name']))
+                self.observationsTable.setItem(row, 5, QTableWidgetItem(obs['filter_name']))
+                self.observationsTable.setItem(row, 6, QTableWidgetItem(str(obs['image_count'])))
+                self.observationsTable.setItem(row, 7, QTableWidgetItem(str(obs['exposure_length'])))
+                self.observationsTable.setItem(row, 8, QTableWidgetItem(obs['comments'] or ''))
+            
+            self.statusbar.showMessage(f'Loaded {len(observations)} observation(s)')
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', f'Failed to load observations: {str(e)}')
+    
+    def add_observation(self):
+        """Add a new observation to the database."""
+        session_id = self.sessionIdComboBox.currentText()
+        object_name = self.objectComboBox.currentText()
+        camera_name = self.cameraComboBox.currentText()
+        telescope_name = self.telescopeComboBox.currentText()
+        filter_name = self.filterComboBox.currentText()
+        image_count = self.imageCountSpinBox.value()
+        exposure_length = self.exposureLengthSpinBox.value()
+        comments = self.commentsLineEdit.text().strip()
+        
+        if not all([session_id, object_name, camera_name, telescope_name, filter_name]):
+            QMessageBox.warning(self, 'Warning', 'Please select all required fields.')
+            return
+        
+        if image_count == 0 or exposure_length == 0:
+            QMessageBox.warning(self, 'Warning', 'Please enter valid image count and exposure length.')
+            return
+        
+        try:
+            self.db.add_observation(session_id, object_name, camera_name, telescope_name,
+                                   filter_name, image_count, exposure_length, comments)
+            self.imageCountSpinBox.setValue(0)
+            self.exposureLengthSpinBox.setValue(0)
+            self.commentsLineEdit.clear()
+            self.load_observations()
+            self.statusbar.showMessage(f'Added observation for {object_name}')
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', f'Failed to add observation: {str(e)}')
+    
+    def edit_observation(self):
+        """Edit the selected observation."""
+        selected_rows = self.observationsTable.selectedItems()
+        
+        if not selected_rows:
+            QMessageBox.warning(self, 'Warning', 'Please select an observation to edit.')
+            return
+        
+        row = self.observationsTable.currentRow()
+        observation_id = int(self.observationsTable.item(row, 0).text())
+        current_session_id = self.observationsTable.item(row, 1).text()
+        current_object = self.observationsTable.item(row, 2).text()
+        current_camera = self.observationsTable.item(row, 3).text()
+        current_telescope = self.observationsTable.item(row, 4).text()
+        current_filter = self.observationsTable.item(row, 5).text()
+        current_image_count = int(self.observationsTable.item(row, 6).text())
+        current_exposure = int(self.observationsTable.item(row, 7).text())
+        current_comments = self.observationsTable.item(row, 8).text()
+        
+        # Get available options
+        sessions = [s['session_id'] for s in self.db.get_all_sessions()]
+        objects = [o['name'] for o in self.db.get_all_objects()]
+        cameras = [c['name'] for c in self.db.get_all_cameras()]
+        telescopes = [t['name'] for t in self.db.get_all_telescopes()]
+        filters = [f['name'] for f in self.db.get_all_filters()]
+        
+        dialog = EditObservationDialog(
+            current_session_id, current_object, current_camera, current_telescope,
+            current_filter, current_image_count, current_exposure, current_comments,
+            sessions, objects, cameras, telescopes, filters, self
+        )
+        
+        if dialog.exec():
+            session_id, object_name, camera_name, telescope_name, filter_name, \
+                image_count, exposure_length, comments = dialog.get_values()
+            try:
+                self.db.update_observation(observation_id, session_id, object_name,
+                                          camera_name, telescope_name, filter_name,
+                                          image_count, exposure_length, comments)
+                self.load_observations()
+                self.statusbar.showMessage(f'Updated observation ID {observation_id}')
+            except Exception as e:
+                QMessageBox.critical(self, 'Error', f'Failed to update observation: {str(e)}')
+    
+    def delete_observation(self):
+        """Delete the selected observation."""
+        selected_rows = self.observationsTable.selectedItems()
+        
+        if not selected_rows:
+            QMessageBox.warning(self, 'Warning', 'Please select an observation to delete.')
+            return
+        
+        row = self.observationsTable.currentRow()
+        observation_id = int(self.observationsTable.item(row, 0).text())
+        object_name = self.observationsTable.item(row, 2).text()
+        
+        reply = QMessageBox.question(
+            self, 'Confirm Deletion',
+            f'Are you sure you want to delete observation for "{object_name}"?',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                self.db.delete_observation(observation_id)
+                self.load_observations()
+                self.statusbar.showMessage(f'Deleted observation for {object_name}')
+            except Exception as e:
+                QMessageBox.critical(self, 'Error', f'Failed to delete observation: {str(e)}')
+    
     def closeEvent(self, event):
         """Handle window close event."""
         self.db.close()
@@ -882,3 +1150,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    

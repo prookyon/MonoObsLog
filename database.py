@@ -71,6 +71,26 @@ class Database:
             )
         """)
         
+        # Observations table
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS observations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL,
+                object_name TEXT NOT NULL,
+                camera_name TEXT NOT NULL,
+                telescope_name TEXT NOT NULL,
+                filter_name TEXT NOT NULL,
+                image_count INTEGER NOT NULL,
+                exposure_length INTEGER NOT NULL,
+                comments TEXT,
+                FOREIGN KEY (session_id) REFERENCES sessions(session_id),
+                FOREIGN KEY (object_name) REFERENCES objects(name),
+                FOREIGN KEY (camera_name) REFERENCES cameras(name),
+                FOREIGN KEY (telescope_name) REFERENCES telescopes(name),
+                FOREIGN KEY (filter_name) REFERENCES filters(name)
+            )
+        """)
+        
         self.connection.commit()
     
     def add_object(self, name: str) -> int:
@@ -289,5 +309,53 @@ class Database:
     def delete_telescope(self, telescope_id: int) -> bool:
         """Delete a telescope from the database."""
         self.cursor.execute("DELETE FROM telescopes WHERE id = ?", (telescope_id,))
+        self.connection.commit()
+        return self.cursor.rowcount > 0
+    # ==================== Observation Methods ====================
+    
+    def add_observation(self, session_id: str, object_name: str, camera_name: str, 
+                       telescope_name: str, filter_name: str, image_count: int, 
+                       exposure_length: int, comments: str) -> int:
+        """Add a new observation to the database."""
+        self.cursor.execute(
+            """INSERT INTO observations 
+               (session_id, object_name, camera_name, telescope_name, filter_name, 
+                image_count, exposure_length, comments) 
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (session_id, object_name, camera_name, telescope_name, filter_name, 
+             image_count, exposure_length, comments)
+        )
+        self.connection.commit()
+        return self.cursor.lastrowid
+    
+    def get_all_observations(self) -> List[Dict]:
+        """Get all observations from the database."""
+        self.cursor.execute("""
+            SELECT id, session_id, object_name, camera_name, telescope_name, 
+                   filter_name, image_count, exposure_length, comments 
+            FROM observations 
+            ORDER BY id
+        """)
+        rows = self.cursor.fetchall()
+        return [dict(row) for row in rows]
+    
+    def update_observation(self, observation_id: int, session_id: str, object_name: str, 
+                          camera_name: str, telescope_name: str, filter_name: str, 
+                          image_count: int, exposure_length: int, comments: str) -> bool:
+        """Update an existing observation."""
+        self.cursor.execute(
+            """UPDATE observations 
+               SET session_id = ?, object_name = ?, camera_name = ?, telescope_name = ?, 
+                   filter_name = ?, image_count = ?, exposure_length = ?, comments = ? 
+               WHERE id = ?""",
+            (session_id, object_name, camera_name, telescope_name, filter_name, 
+             image_count, exposure_length, comments, observation_id)
+        )
+        self.connection.commit()
+        return self.cursor.rowcount > 0
+    
+    def delete_observation(self, observation_id: int) -> bool:
+        """Delete an observation from the database."""
+        self.cursor.execute("DELETE FROM observations WHERE id = ?", (observation_id,))
         self.connection.commit()
         return self.cursor.rowcount > 0

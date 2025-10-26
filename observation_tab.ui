@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ObservationTab</class>
+ <widget class="QWidget" name="ObservationTab">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="sessionIdLabel">
+       <property name="text">
+        <string>Session ID:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="sessionIdComboBox"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="objectLabel">
+       <property name="text">
+        <string>Object:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="objectComboBox"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="cameraLabel">
+       <property name="text">
+        <string>Camera:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="cameraComboBox"/>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="telescopeLabel">
+       <property name="text">
+        <string>Telescope:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="telescopeComboBox"/>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="filterLabel">
+       <property name="text">
+        <string>Filter:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="filterComboBox"/>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="imageCountLabel">
+       <property name="text">
+        <string>Image Count:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QSpinBox" name="imageCountSpinBox">
+       <property name="maximum">
+        <number>99999</number>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="exposureLengthLabel">
+       <property name="text">
+        <string>Exposure Length (s):</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QSpinBox" name="exposureLengthSpinBox">
+       <property name="maximum">
+        <number>99999</number>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="commentsLabel">
+       <property name="text">
+        <string>Comments:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="1">
+      <widget class="QLineEdit" name="commentsLineEdit">
+       <property name="placeholderText">
+        <string>Enter comments (optional)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2" rowspan="8">
+      <widget class="QPushButton" name="addObservationButton">
+       <property name="text">
+        <string>Add Observation</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QTableWidget" name="observationsTable">
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <column>
+      <property name="text">
+       <string>ID</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Session ID</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Object</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Camera</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Telescope</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Filter</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Images</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Exposure (s)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Comments</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="editObservationButton">
+       <property name="text">
+        <string>Edit Selected</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="deleteObservationButton">
+       <property name="text">
+        <string>Delete Selected</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
