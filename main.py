@@ -230,16 +230,28 @@ class MainWindow(QMainWindow):
         self.statusbar.showMessage('Ready')
     
     def setup_objects_tab(self):
-        """Setup the Objects tab (already exists in mainwindow.ui)."""
+        """Setup the Objects tab."""
+        object_widget = QWidget()
+        uic.loadUi('object_tab.ui', object_widget)
+        self.tabWidget.addTab(object_widget, "Objects")
+
+        # Store references
+        self.objectsTable = object_widget.findChild(QWidget, "objectsTable")
+        self.nameLineEdit = object_widget.findChild(QWidget, "nameLineEdit")
+        self.addButton = object_widget.findChild(QWidget, "addButton")
+        self.editButton = object_widget.findChild(QWidget, "editButton")
+        self.deleteButton = object_widget.findChild(QWidget, "deleteButton")
+
+        # Connect signals
         self.addButton.clicked.connect(self.add_object)
         self.editButton.clicked.connect(self.edit_object)
         self.deleteButton.clicked.connect(self.delete_object)
         self.nameLineEdit.returnPressed.connect(self.add_object)
-        
+
         # Hide ID column
         self.objectsTable.setColumnHidden(0, True)
         self.objectsTable.setColumnWidth(1, 600)
-        
+
         self.load_objects()
     
     def setup_sessions_tab(self):
