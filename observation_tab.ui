@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>394</width>
+    <width>1286</width>
     <height>386</height>
    </rect>
   </property>
@@ -115,70 +115,77 @@
     </layout>
    </item>
    <item>
-    <widget class="QTableWidget" name="observationsTable">
-     <property name="editTriggers">
-      <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
-     </property>
-     <property name="alternatingRowColors">
-      <bool>true</bool>
-     </property>
-     <property name="selectionMode">
-      <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
-     </property>
-     <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
-     </property>
-     <column>
-      <property name="text">
-       <string>ID</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Session ID</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Object</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Camera</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Telescope</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Filter</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Images</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Exposure (s)</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Total Exposure (s)</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Comments</string>
-      </property>
-     </column>
-    </widget>
+    <layout class="QHBoxLayout" name="filterAndTableLayout" stretch="0,1">
+     <item>
+      <widget class="QListView" name="observationFilterListView"/>
+     </item>
+     <item>
+      <widget class="QTableWidget" name="observationsTable">
+       <property name="editTriggers">
+        <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+       </property>
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+       </property>
+       <column>
+        <property name="text">
+         <string>ID</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Session ID</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Object</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Camera</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Telescope</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Filter</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Images</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Exposure (s)</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Total Exposure (s)</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Comments</string>
+        </property>
+       </column>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
