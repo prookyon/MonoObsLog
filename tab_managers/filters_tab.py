@@ -82,15 +82,20 @@ class FiltersTabManager:
         """Add a new filter to the database."""
         name = self.filter_name_line_edit.text().strip()
         filter_type = self.filter_type_combo_box.currentText()
-        
+
         if not name:
             QMessageBox.warning(self.parent, 'Warning', 'Please enter a filter name.')
             return
-        
+
         if not filter_type:
             QMessageBox.warning(self.parent, 'Warning', 'Please select a filter type.')
             return
-        
+
+        # Check for duplicate filter name
+        if self.db.filter_name_exists(name):
+            QMessageBox.warning(self.parent, 'Warning', f'Filter name "{name}" already exists. Please choose a unique filter name.')
+            return
+
         try:
             self.db.add_filter(name, filter_type)
             self.filter_name_line_edit.clear()
@@ -102,22 +107,28 @@ class FiltersTabManager:
     def edit_filter(self):
         """Edit the selected filter."""
         selected_rows = self.filters_table.selectedItems()
-        
+
         if not selected_rows:
             QMessageBox.warning(self.parent, 'Warning', 'Please select a filter to edit.')
             return
-        
+
         row = self.filters_table.currentRow()
         filter_id = int(self.filters_table.item(row, 0).text())
         current_name = self.filters_table.item(row, 1).text()
         current_type = self.filters_table.item(row, 2).text()
-        
+
         # Get available filter types
         filter_types = [ft['name'] for ft in self.db.get_all_filter_types()]
-        
+
         dialog = EditFilterDialog(current_name, current_type, filter_types, self.parent)
         if dialog.exec():
             name, filter_type = dialog.get_values()
+
+            # Check for duplicate filter name, excluding the current filter
+            if self.db.filter_name_exists(name, exclude_id=filter_id):
+                QMessageBox.warning(self.parent, 'Warning', f'Filter name "{name}" already exists. Please choose a unique filter name.')
+                return
+
             try:
                 self.db.update_filter(filter_id, name, filter_type)
                 self.load_filters()

@@ -65,11 +65,16 @@ class FilterTypesTabManager:
     def add_filter_type(self):
         """Add a new filter type to the database."""
         name = self.filter_type_name_line_edit.text().strip()
-        
+
         if not name:
             QMessageBox.warning(self.parent, 'Warning', 'Please enter a filter type name.')
             return
-        
+
+        # Check for duplicate filter type name
+        if self.db.filter_type_name_exists(name):
+            QMessageBox.warning(self.parent, 'Warning', f'Filter type name "{name}" already exists. Please choose a unique filter type name.')
+            return
+
         try:
             self.db.add_filter_type(name)
             self.filter_type_name_line_edit.clear()
@@ -81,22 +86,28 @@ class FilterTypesTabManager:
     def edit_filter_type(self):
         """Edit the selected filter type."""
         selected_rows = self.filter_types_table.selectedItems()
-        
+
         if not selected_rows:
             QMessageBox.warning(self.parent, 'Warning', 'Please select a filter type to edit.')
             return
-        
+
         row = self.filter_types_table.currentRow()
         filter_type_id = int(self.filter_types_table.item(row, 0).text())
         current_name = self.filter_types_table.item(row, 1).text()
-        
+
         new_name, ok = QInputDialog.getText(
             self.parent, 'Edit Filter Type', 'Enter new name:', text=current_name
         )
-        
+
         if ok and new_name.strip():
+            new_name = new_name.strip()
+            # Check for duplicate filter type name, excluding the current filter type
+            if self.db.filter_type_name_exists(new_name, exclude_id=filter_type_id):
+                QMessageBox.warning(self.parent, 'Warning', f'Filter type name "{new_name}" already exists. Please choose a unique filter type name.')
+                return
+
             try:
-                self.db.update_filter_type(filter_type_id, new_name.strip())
+                self.db.update_filter_type(filter_type_id, new_name)
                 self.load_filter_types()
                 self.statusbar.showMessage(f'Updated filter type ID {filter_type_id}')
             except Exception as e:

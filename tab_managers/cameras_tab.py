@@ -83,18 +83,23 @@ class CamerasTabManager:
         pixel_size = self.pixel_size_spin_box.value()
         width = self.width_spin_box.value()
         height = self.height_spin_box.value()
-        
+
         if not name or not sensor:
             QMessageBox.warning(self.parent, 'Warning', 'Please enter camera name and sensor.')
             return
-        
+
         if pixel_size == 0 or width == 0 or height == 0:
             QMessageBox.warning(
-                self.parent, 'Warning', 
+                self.parent, 'Warning',
                 'Please enter valid pixel size, width, and height.'
             )
             return
-        
+
+        # Check for duplicate camera name
+        if self.db.camera_name_exists(name):
+            QMessageBox.warning(self.parent, 'Warning', f'Camera name "{name}" already exists. Please choose a unique camera name.')
+            return
+
         try:
             self.db.add_camera(name, sensor, pixel_size, width, height)
             self.camera_name_line_edit.clear()
@@ -110,11 +115,11 @@ class CamerasTabManager:
     def edit_camera(self):
         """Edit the selected camera."""
         selected_rows = self.cameras_table.selectedItems()
-        
+
         if not selected_rows:
             QMessageBox.warning(self.parent, 'Warning', 'Please select a camera to edit.')
             return
-        
+
         row = self.cameras_table.currentRow()
         camera_id = int(self.cameras_table.item(row, 0).text())
         current_name = self.cameras_table.item(row, 1).text()
@@ -122,13 +127,19 @@ class CamerasTabManager:
         current_pixel_size = float(self.cameras_table.item(row, 3).text())
         current_width = int(self.cameras_table.item(row, 4).text())
         current_height = int(self.cameras_table.item(row, 5).text())
-        
+
         dialog = EditCameraDialog(
             current_name, current_sensor, current_pixel_size,
             current_width, current_height, self.parent
         )
         if dialog.exec():
             name, sensor, pixel_size, width, height = dialog.get_values()
+
+            # Check for duplicate camera name, excluding the current camera
+            if self.db.camera_name_exists(name, exclude_id=camera_id):
+                QMessageBox.warning(self.parent, 'Warning', f'Camera name "{name}" already exists. Please choose a unique camera name.')
+                return
+
             try:
                 self.db.update_camera(camera_id, name, sensor, pixel_size, width, height)
                 self.load_cameras()

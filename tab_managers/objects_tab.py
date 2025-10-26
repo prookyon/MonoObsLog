@@ -65,11 +65,16 @@ class ObjectsTabManager:
     def add_object(self):
         """Add a new object to the database."""
         name = self.name_line_edit.text().strip()
-        
+
         if not name:
             QMessageBox.warning(self.parent, 'Warning', 'Please enter an object name.')
             return
-        
+
+        # Check for duplicate object name
+        if self.db.object_name_exists(name):
+            QMessageBox.warning(self.parent, 'Warning', f'Object name "{name}" already exists. Please choose a unique object name.')
+            return
+
         try:
             self.db.add_object(name)
             self.name_line_edit.clear()
@@ -81,22 +86,28 @@ class ObjectsTabManager:
     def edit_object(self):
         """Edit the selected object."""
         selected_rows = self.objects_table.selectedItems()
-        
+
         if not selected_rows:
             QMessageBox.warning(self.parent, 'Warning', 'Please select an object to edit.')
             return
-        
+
         row = self.objects_table.currentRow()
         object_id = int(self.objects_table.item(row, 0).text())
         current_name = self.objects_table.item(row, 1).text()
-        
+
         new_name, ok = QInputDialog.getText(
             self.parent, 'Edit Object', 'Enter new name:', text=current_name
         )
-        
+
         if ok and new_name.strip():
+            new_name = new_name.strip()
+            # Check for duplicate object name, excluding the current object
+            if self.db.object_name_exists(new_name, exclude_id=object_id):
+                QMessageBox.warning(self.parent, 'Warning', f'Object name "{new_name}" already exists. Please choose a unique object name.')
+                return
+
             try:
-                self.db.update_object(object_id, new_name.strip())
+                self.db.update_object(object_id, new_name)
                 self.load_objects()
                 self.statusbar.showMessage(f'Updated object ID {object_id}')
             except Exception as e:

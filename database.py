@@ -17,7 +17,7 @@ class Database:
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS objects (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL
+                name TEXT NOT NULL UNIQUE
             )
         """)
         
@@ -34,7 +34,7 @@ class Database:
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS cameras (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
+                name TEXT NOT NULL UNIQUE,
                 sensor TEXT NOT NULL,
                 pixel_size REAL NOT NULL,
                 width INTEGER NOT NULL,
@@ -54,7 +54,7 @@ class Database:
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS filters (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
+                name TEXT NOT NULL UNIQUE,
                 type TEXT NOT NULL,
                 FOREIGN KEY (type) REFERENCES filter_types(name)
             )
@@ -64,7 +64,7 @@ class Database:
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS telescopes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
+                name TEXT NOT NULL UNIQUE,
                 aperture INTEGER NOT NULL,
                 f_ratio REAL NOT NULL,
                 focal_length INTEGER NOT NULL
@@ -200,6 +200,96 @@ class Database:
         if exclude_id is not None:
             query += " AND id != ?"
             params = (session_id, exclude_id)
+        self.cursor.execute(query, params)
+        return self.cursor.fetchone() is not None
+
+    def object_name_exists(self, name: str, exclude_id: Optional[int] = None) -> bool:
+        """Check if an object name already exists in the database.
+
+        Args:
+            name: The object name to check
+            exclude_id: Optional internal ID to exclude from the check (for updates)
+
+        Returns:
+            True if the object name exists, False otherwise
+        """
+        query = "SELECT id FROM objects WHERE name = ?"
+        params = (name,)
+        if exclude_id is not None:
+            query += " AND id != ?"
+            params = (name, exclude_id)
+        self.cursor.execute(query, params)
+        return self.cursor.fetchone() is not None
+
+    def camera_name_exists(self, name: str, exclude_id: Optional[int] = None) -> bool:
+        """Check if a camera name already exists in the database.
+
+        Args:
+            name: The camera name to check
+            exclude_id: Optional internal ID to exclude from the check (for updates)
+
+        Returns:
+            True if the camera name exists, False otherwise
+        """
+        query = "SELECT id FROM cameras WHERE name = ?"
+        params = (name,)
+        if exclude_id is not None:
+            query += " AND id != ?"
+            params = (name, exclude_id)
+        self.cursor.execute(query, params)
+        return self.cursor.fetchone() is not None
+
+    def filter_type_name_exists(self, name: str, exclude_id: Optional[int] = None) -> bool:
+        """Check if a filter type name already exists in the database.
+
+        Args:
+            name: The filter type name to check
+            exclude_id: Optional internal ID to exclude from the check (for updates)
+
+        Returns:
+            True if the filter type name exists, False otherwise
+        """
+        query = "SELECT id FROM filter_types WHERE name = ?"
+        params = (name,)
+        if exclude_id is not None:
+            query += " AND id != ?"
+            params = (name, exclude_id)
+        self.cursor.execute(query, params)
+        return self.cursor.fetchone() is not None
+
+    def filter_name_exists(self, name: str, exclude_id: Optional[int] = None) -> bool:
+        """Check if a filter name already exists in the database.
+
+        Args:
+            name: The filter name to check
+            exclude_id: Optional internal ID to exclude from the check (for updates)
+
+        Returns:
+            True if the filter name exists, False otherwise
+        """
+        query = "SELECT id FROM filters WHERE name = ?"
+        params = (name,)
+        if exclude_id is not None:
+            query += " AND id != ?"
+            params = (name, exclude_id)
+        self.cursor.execute(query, params)
+        return self.cursor.fetchone() is not None
+
+    def telescope_name_exists(self, name: str, exclude_id: Optional[int] = None) -> bool:
+        """Check if a telescope name already exists in the database.
+
+        Args:
+            name: The telescope name to check
+            exclude_id: Optional internal ID to exclude from the check (for updates)
+
+        Returns:
+            True if the telescope name exists, False otherwise
+        """
+        query = "SELECT id FROM telescopes WHERE name = ?"
+        params = (name,)
+        if exclude_id is not None:
+            query += " AND id != ?"
+            params = (name, exclude_id)
         self.cursor.execute(query, params)
         return self.cursor.fetchone() is not None
     

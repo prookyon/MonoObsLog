@@ -83,18 +83,23 @@ class TelescopesTabManager:
         aperture = self.aperture_spin_box.value()
         f_ratio = self.f_ratio_spin_box.value()
         focal_length = self.focal_length_spin_box.value()
-        
+
         if not name:
             QMessageBox.warning(self.parent, 'Warning', 'Please enter a telescope name.')
             return
-        
+
         if aperture == 0 or f_ratio == 0 or focal_length == 0:
             QMessageBox.warning(
                 self.parent, 'Warning',
                 'Please enter valid aperture, f-ratio, and focal length.'
             )
             return
-        
+
+        # Check for duplicate telescope name
+        if self.db.telescope_name_exists(name):
+            QMessageBox.warning(self.parent, 'Warning', f'Telescope name "{name}" already exists. Please choose a unique telescope name.')
+            return
+
         try:
             self.db.add_telescope(name, aperture, f_ratio, focal_length)
             self.telescope_name_line_edit.clear()
@@ -109,24 +114,30 @@ class TelescopesTabManager:
     def edit_telescope(self):
         """Edit the selected telescope."""
         selected_rows = self.telescopes_table.selectedItems()
-        
+
         if not selected_rows:
             QMessageBox.warning(self.parent, 'Warning', 'Please select a telescope to edit.')
             return
-        
+
         row = self.telescopes_table.currentRow()
         telescope_id = int(self.telescopes_table.item(row, 0).text())
         current_name = self.telescopes_table.item(row, 1).text()
         current_aperture = int(self.telescopes_table.item(row, 2).text())
         current_f_ratio = float(self.telescopes_table.item(row, 3).text())
         current_focal_length = int(self.telescopes_table.item(row, 4).text())
-        
+
         dialog = EditTelescopeDialog(
             current_name, current_aperture, current_f_ratio,
             current_focal_length, self.parent
         )
         if dialog.exec():
             name, aperture, f_ratio, focal_length = dialog.get_values()
+
+            # Check for duplicate telescope name, excluding the current telescope
+            if self.db.telescope_name_exists(name, exclude_id=telescope_id):
+                QMessageBox.warning(self.parent, 'Warning', f'Telescope name "{name}" already exists. Please choose a unique telescope name.')
+                return
+
             try:
                 self.db.update_telescope(telescope_id, name, aperture, f_ratio, focal_length)
                 self.load_telescopes()
