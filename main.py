@@ -222,7 +222,10 @@ class MainWindow(QMainWindow):
         self.setup_filters_tab()
         self.setup_telescopes_tab()
         self.setup_observations_tab()
-        
+
+        # Connect tab change signal to update observation combos when switching to Observations tab
+        self.tabWidget.currentChanged.connect(self.on_tab_changed)
+
         # Set status bar message
         self.statusbar.showMessage('Ready')
     
@@ -376,6 +379,10 @@ class MainWindow(QMainWindow):
         self.editTelescopeButton.clicked.connect(self.edit_telescope)
         self.deleteTelescopeButton.clicked.connect(self.delete_telescope)
         self.telescopeNameLineEdit.returnPressed.connect(self.add_telescope)
+
+        # Connect value change signals for automatic F-ratio calculation
+        self.apertureSpinBox.valueChanged.connect(self.calculate_f_ratio)
+        self.focalLengthSpinBox.valueChanged.connect(self.calculate_f_ratio)
         
         # Hide ID column
         self.telescopesTable.setColumnHidden(0, True)
@@ -976,7 +983,19 @@ class MainWindow(QMainWindow):
                 self.statusbar.showMessage(f'Deleted telescope: {telescope_name}')
             except Exception as e:
                 QMessageBox.critical(self, 'Error', f'Failed to delete telescope: {str(e)}')
-    
+
+    def calculate_f_ratio(self):
+        """Automatically calculate and fill F-ratio when aperture and focal length are entered."""
+        aperture = self.apertureSpinBox.value()
+        focal_length = self.focalLengthSpinBox.value()
+
+        # Only calculate if both values are greater than 0
+        if aperture > 0 and focal_length > 0:
+            f_ratio = focal_length / aperture
+            # Round to one decimal place as requested
+            rounded_f_ratio = round(f_ratio, 1)
+            self.fRatioSpinBox.setValue(rounded_f_ratio)
+
     # ==================== Observation Methods ====================
     
     def update_observation_combos(self):
@@ -1136,7 +1155,15 @@ class MainWindow(QMainWindow):
                 self.statusbar.showMessage(f'Deleted observation for {object_name}')
             except Exception as e:
                 QMessageBox.critical(self, 'Error', f'Failed to delete observation: {str(e)}')
-    
+
+    def on_tab_changed(self, index):
+        """Handle tab change events."""
+        # Get the tab text to identify which tab was selected
+        tab_text = self.tabWidget.tabText(index)
+        if tab_text == "Observations":
+            # Update the observation combo boxes when switching to the Observations tab
+            self.update_observation_combos()
+
     def closeEvent(self, event):
         """Handle window close event."""
         self.db.close()
