@@ -174,6 +174,19 @@ The application follows a **modular architecture** with clear separation of conc
 **Calculated Field**: Total exposure = image_count × exposure_length (calculated in database)
 **Special Features**: QListView filter showing "< All Names >" and unique observed objects
 
+#### `tab_managers/object_stats_tab.py` (110 lines)
+**Purpose**: Manages Object Stats tab (cumulative exposure statistics by object and filter type)
+**Key Methods**:
+- `setup_tab()`: Loads UI, gets table reference, loads initial data
+- `load_stats()`: Fetches stats from database, dynamically creates table columns based on filter types, populates table with cumulative exposures
+**UI Elements**: Table with dynamic columns (Object Name + filter types + Total)
+**Dependencies**: Requires observations with associated filters
+**Special Features**:
+- Dynamically generates columns based on unique filter types in observations
+- Shows cumulative total exposure for each object/filter type combination
+- Includes Total column summing all exposures per object
+- Auto-refreshes when tab is selected
+
 ## UI Files
 
 The application uses Qt Designer `.ui` files for layouts:
@@ -185,6 +198,7 @@ The application uses Qt Designer `.ui` files for layouts:
 - `filter_tab.ui`: Filters tab layout
 - `telescope_tab.ui`: Telescopes tab layout
 - `observation_tab.ui`: Observations tab layout
+- `object_stats_tab.ui`: Object Stats tab layout
 
 **Note**: UI files are loaded dynamically using `uic.loadUi()`. Widget references are obtained using `findChild()`.
 
@@ -295,6 +309,9 @@ Key relationships:
 - Filters reference: Filter Types
 - All entities have auto-incrementing integer primary keys
 - Foreign key constraints ensure referential integrity
+
+### Statistics Queries
+- `get_object_stats()`: Aggregates observations by object name and filter type, calculating cumulative total exposure for each combination
 
 ## Best Practices for Modifications
 

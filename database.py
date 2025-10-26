@@ -470,3 +470,22 @@ class Database:
         self.cursor.execute("DELETE FROM observations WHERE id = ?", (observation_id,))
         self.connection.commit()
         return self.cursor.rowcount > 0
+    
+    def get_object_stats(self) -> List[Dict]:
+        """Get cumulative exposure statistics for each object grouped by filter type.
+        
+        Returns:
+            List of dictionaries containing object_name, filter_type, and total_exposure
+        """
+        self.cursor.execute("""
+            SELECT
+                o.object_name,
+                f.type as filter_type,
+                SUM(o.total_exposure) as total_exposure
+            FROM observations o
+            JOIN filters f ON o.filter_name = f.name
+            GROUP BY o.object_name, f.type
+            ORDER BY o.object_name, f.type
+        """)
+        rows = self.cursor.fetchall()
+        return [dict(row) for row in rows]

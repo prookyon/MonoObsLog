@@ -7,6 +7,7 @@ from .filter_types_tab import FilterTypesTabManager
 from .filters_tab import FiltersTabManager
 from .telescopes_tab import TelescopesTabManager
 from .observations_tab import ObservationsTabManager
+from .object_stats_tab import ObjectStatsTabManager
 
 __all__ = [
     'ObjectsTabManager',
@@ -16,4 +17,5 @@ __all__ = [
     'FiltersTabManager',
     'TelescopesTabManager',
     'ObservationsTabManager',
+    'ObjectStatsTabManager',
 ]
