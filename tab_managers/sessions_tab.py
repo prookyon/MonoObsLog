@@ -75,11 +75,16 @@ class SessionsTabManager:
         """Add a new session to the database."""
         session_id = self.session_id_line_edit.text().strip()
         start_date = self.start_date_edit.date().toString("yyyy-MM-dd")
-        
+
         if not session_id:
             QMessageBox.warning(self.parent, 'Warning', 'Please enter a session ID.')
             return
-        
+
+        # Check for duplicate session ID
+        if self.db.session_id_exists(session_id):
+            QMessageBox.warning(self.parent, 'Warning', f'Session ID "{session_id}" already exists. Please choose a unique session ID.')
+            return
+
         try:
             self.db.add_session(session_id, start_date)
             self.session_id_line_edit.clear()
@@ -92,19 +97,25 @@ class SessionsTabManager:
     def edit_session(self):
         """Edit the selected session."""
         selected_rows = self.sessions_table.selectedItems()
-        
+
         if not selected_rows:
             QMessageBox.warning(self.parent, 'Warning', 'Please select a session to edit.')
             return
-        
+
         row = self.sessions_table.currentRow()
         session_id = int(self.sessions_table.item(row, 0).text())
         current_session_id = self.sessions_table.item(row, 1).text()
         current_start_date = self.sessions_table.item(row, 2).text()
-        
+
         dialog = EditSessionDialog(current_session_id, current_start_date, self.parent)
         if dialog.exec():
             new_session_id, new_start_date = dialog.get_values()
+
+            # Check for duplicate session ID, excluding the current session
+            if self.db.session_id_exists(new_session_id, exclude_id=session_id):
+                QMessageBox.warning(self.parent, 'Warning', f'Session ID "{new_session_id}" already exists. Please choose a unique session ID.')
+                return
+
             try:
                 self.db.update_session(session_id, new_session_id, new_start_date)
                 self.load_sessions()

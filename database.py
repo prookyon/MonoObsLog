@@ -25,7 +25,7 @@ class Database:
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS sessions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                session_id TEXT NOT NULL,
+                session_id TEXT NOT NULL UNIQUE,
                 start_date TEXT NOT NULL
             )
         """)
@@ -184,6 +184,24 @@ class Database:
         self.cursor.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
         self.connection.commit()
         return self.cursor.rowcount > 0
+
+    def session_id_exists(self, session_id: str, exclude_id: Optional[int] = None) -> bool:
+        """Check if a session ID already exists in the database.
+
+        Args:
+            session_id: The session ID to check
+            exclude_id: Optional internal ID to exclude from the check (for updates)
+
+        Returns:
+            True if the session ID exists, False otherwise
+        """
+        query = "SELECT id FROM sessions WHERE session_id = ?"
+        params = (session_id,)
+        if exclude_id is not None:
+            query += " AND id != ?"
+            params = (session_id, exclude_id)
+        self.cursor.execute(query, params)
+        return self.cursor.fetchone() is not None
     
     # ==================== Camera Methods ====================
     
