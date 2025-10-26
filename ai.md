@@ -162,14 +162,17 @@ The application follows a **modular architecture** with clear separation of conc
 **Key Methods**:
 - `setup_tab()`: Loads UI, connects signals, configures table columns
 - `update_observation_combos()`: Populates all combo boxes with current data
-- `load_observations()`: Fetches and displays all observations
+- `update_filter_list()`: Populates filter list with unique object names from observations
+- `load_observations()`: Fetches and displays observations (optionally filtered by object)
+- `filter_observations()`: Handles filter selection changes
 - `add_observation()`: Adds new observation record
 - `edit_observation()`: Opens EditObservationDialog for editing
 - `delete_observation()`: Deletes observation with confirmation
-**UI Elements**: Table, combo boxes for session/object/camera/telescope/filter, spin boxes for counts/exposure, comments input
+**UI Elements**: Table, combo boxes for session/object/camera/telescope/filter, spin boxes for counts/exposure, comments input, QListView for object filtering
 **Dependencies**: Requires data in all other tabs (sessions, objects, cameras, telescopes, filters)
 **Validation**: Ensures all required fields are selected and numeric values are non-zero
 **Calculated Field**: Total exposure = image_count × exposure_length (calculated in database)
+**Special Features**: QListView filter showing "< All Names >" and unique observed objects
 
 ## UI Files
 
