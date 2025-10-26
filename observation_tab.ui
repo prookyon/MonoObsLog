@@ -159,6 +159,11 @@
      </column>
      <column>
       <property name="text">
+       <string>Total Exposure (s)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>Comments</string>
       </property>
      </column>

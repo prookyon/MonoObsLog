@@ -82,6 +82,7 @@ class Database:
                 filter_name TEXT NOT NULL,
                 image_count INTEGER NOT NULL,
                 exposure_length INTEGER NOT NULL,
+                total_exposure INTEGER NOT NULL,
                 comments TEXT,
                 FOREIGN KEY (session_id) REFERENCES sessions(session_id),
                 FOREIGN KEY (object_name) REFERENCES objects(name),
@@ -313,17 +314,18 @@ class Database:
         return self.cursor.rowcount > 0
     # ==================== Observation Methods ====================
     
-    def add_observation(self, session_id: str, object_name: str, camera_name: str, 
-                       telescope_name: str, filter_name: str, image_count: int, 
+    def add_observation(self, session_id: str, object_name: str, camera_name: str,
+                       telescope_name: str, filter_name: str, image_count: int,
                        exposure_length: int, comments: str) -> int:
         """Add a new observation to the database."""
+        total_exposure = image_count * exposure_length
         self.cursor.execute(
-            """INSERT INTO observations 
-               (session_id, object_name, camera_name, telescope_name, filter_name, 
-                image_count, exposure_length, comments) 
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (session_id, object_name, camera_name, telescope_name, filter_name, 
-             image_count, exposure_length, comments)
+            """INSERT INTO observations
+               (session_id, object_name, camera_name, telescope_name, filter_name,
+                image_count, exposure_length, total_exposure, comments)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (session_id, object_name, camera_name, telescope_name, filter_name,
+             image_count, exposure_length, total_exposure, comments)
         )
         self.connection.commit()
         return self.cursor.lastrowid
@@ -331,25 +333,26 @@ class Database:
     def get_all_observations(self) -> List[Dict]:
         """Get all observations from the database."""
         self.cursor.execute("""
-            SELECT id, session_id, object_name, camera_name, telescope_name, 
-                   filter_name, image_count, exposure_length, comments 
-            FROM observations 
+            SELECT id, session_id, object_name, camera_name, telescope_name,
+                   filter_name, image_count, exposure_length, total_exposure, comments
+            FROM observations
             ORDER BY id
         """)
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
     
-    def update_observation(self, observation_id: int, session_id: str, object_name: str, 
-                          camera_name: str, telescope_name: str, filter_name: str, 
+    def update_observation(self, observation_id: int, session_id: str, object_name: str,
+                          camera_name: str, telescope_name: str, filter_name: str,
                           image_count: int, exposure_length: int, comments: str) -> bool:
         """Update an existing observation."""
+        total_exposure = image_count * exposure_length
         self.cursor.execute(
-            """UPDATE observations 
-               SET session_id = ?, object_name = ?, camera_name = ?, telescope_name = ?, 
-                   filter_name = ?, image_count = ?, exposure_length = ?, comments = ? 
+            """UPDATE observations
+               SET session_id = ?, object_name = ?, camera_name = ?, telescope_name = ?,
+                   filter_name = ?, image_count = ?, exposure_length = ?, total_exposure = ?, comments = ?
                WHERE id = ?""",
-            (session_id, object_name, camera_name, telescope_name, filter_name, 
-             image_count, exposure_length, comments, observation_id)
+            (session_id, object_name, camera_name, telescope_name, filter_name,
+             image_count, exposure_length, total_exposure, comments, observation_id)
         )
         self.connection.commit()
         return self.cursor.rowcount > 0

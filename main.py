@@ -423,7 +423,8 @@ class MainWindow(QMainWindow):
         self.observationsTable.setColumnWidth(5, 80)   # Filter
         self.observationsTable.setColumnWidth(6, 60)   # Images
         self.observationsTable.setColumnWidth(7, 80)   # Exposure
-        self.observationsTable.setColumnWidth(8, 200)  # Comments
+        self.observationsTable.setColumnWidth(8, 100)  # Total Exposure
+        self.observationsTable.setColumnWidth(9, 200)  # Comments
         
         self.load_observations()
         self.update_observation_combos()
@@ -1028,7 +1029,8 @@ class MainWindow(QMainWindow):
                 self.observationsTable.setItem(row, 5, QTableWidgetItem(obs['filter_name']))
                 self.observationsTable.setItem(row, 6, QTableWidgetItem(str(obs['image_count'])))
                 self.observationsTable.setItem(row, 7, QTableWidgetItem(str(obs['exposure_length'])))
-                self.observationsTable.setItem(row, 8, QTableWidgetItem(obs['comments'] or ''))
+                self.observationsTable.setItem(row, 8, QTableWidgetItem(str(obs['total_exposure'])))
+                self.observationsTable.setItem(row, 9, QTableWidgetItem(obs['comments'] or ''))
             
             self.statusbar.showMessage(f'Loaded {len(observations)} observation(s)')
         except Exception as e:
@@ -1081,7 +1083,7 @@ class MainWindow(QMainWindow):
         current_filter = self.observationsTable.item(row, 5).text()
         current_image_count = int(self.observationsTable.item(row, 6).text())
         current_exposure = int(self.observationsTable.item(row, 7).text())
-        current_comments = self.observationsTable.item(row, 8).text()
+        current_comments = self.observationsTable.item(row, 9).text()
         
         # Get available options
         sessions = [s['session_id'] for s in self.db.get_all_sessions()]
