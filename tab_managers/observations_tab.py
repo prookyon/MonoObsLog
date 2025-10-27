@@ -141,7 +141,7 @@ class ObservationsTabManager:
                 self.observations_table.setItem(row, 7, QTableWidgetItem(str(obs['exposure_length'])))
                 self.observations_table.setItem(row, 8, QTableWidgetItem(str(obs['total_exposure'])))
                 self.observations_table.setItem(row, 9, QTableWidgetItem(obs['comments'] or ''))
-
+            self.observations_table.resizeColumnsToContents()
             self.statusbar.showMessage(f'Loaded {len(observations)} observation(s)')
         except Exception as e:
             QMessageBox.critical(self.parent, 'Error', f'Failed to load observations: {str(e)}')
