@@ -1,6 +1,7 @@
 """Object Stats tab manager for the observation log application."""
 
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
+from PyQt6.QtGui import QColor
 from PyQt6 import uic
 
 
@@ -93,18 +94,74 @@ class ObjectStatsTabManager:
                     )
                 
                 # Total column
+                total_item = QTableWidgetItem(str(row_total))
                 self.stats_table.setItem(
-                    row_idx, 
-                    len(filter_types) + 1, 
-                    QTableWidgetItem(str(row_total))
+                    row_idx,
+                    len(filter_types) + 1,
+                    total_item
                 )
             
+            # Apply conditional formatting to Total column
+            self.apply_conditional_formatting()
+
             # Adjust column widths
             self.stats_table.setColumnWidth(0, 150)  # Object Name
             for i in range(1, column_count):
                 self.stats_table.setColumnWidth(i, 100)
-            
+
             self.statusbar.showMessage(f'Loaded stats for {len(object_names)} object(s)')
             
         except Exception as e:
             QMessageBox.critical(self.parent, 'Error', f'Failed to load object stats: {str(e)}')
+
+    def apply_conditional_formatting(self):
+        """Apply conditional formatting to the Total column based on exposure values."""
+        total_col_idx = self.stats_table.columnCount() - 1  # Last column is Total
+
+        # Collect all total values
+        totals = []
+        for row in range(self.stats_table.rowCount()):
+            item = self.stats_table.item(row, total_col_idx)
+            if item:
+                try:
+                    totals.append(float(item.text()))
+                except ValueError:
+                    pass
+
+        if not totals:
+            return
+
+        # Find min and max values
+        min_val = min(totals)
+        max_val = max(totals)
+
+        if max_val / min_val <= 2.0:
+            # All values are quite close, don't apply color
+            return
+
+        # Apply color gradient from red (min) to green (max)
+        for row in range(self.stats_table.rowCount()):
+            item = self.stats_table.item(row, total_col_idx)
+            if item:
+                try:
+                    value = float(item.text())
+                    # Normalize value between 0 and 1
+                    normalized = (value - min_val) / (max_val - min_val)
+
+                    # Map to hue values: Red -> Yellow -> Green
+                    # 0.0 -> Red (0°), 0.5 -> Yellow (60°), 1.0 -> Green (120°)
+                    if normalized <= 0.5:
+                        # Red to Yellow
+                        hue = normalized * 2 * 60  # 0° -> 60°
+                    else:
+                        # Yellow to Green
+                        hue = 60 + ((normalized - 0.5) * 2 * 60)  # 60° -> 120°
+
+                    # For pastel: high value, low-to-medium saturation
+                    saturation = 40  # 0-100, lower = more pastel
+                    value_hsv = 95   # 0-100, brightness
+
+                    color = QColor.fromHsv(int(hue), int(saturation * 255 / 100), int(value_hsv * 255 / 100))
+                    item.setBackground(color)
+                except ValueError:
+                    pass

@@ -17,14 +17,14 @@ The application follows a **modular architecture** with clear separation of conc
 
 ### Core Application Files
 
-#### `main.py` (21 lines)
+#### `main.py`
 **Purpose**: Application entry point
 **Key Functions**:
 - `main()`: Initializes QApplication and MainWindow, starts event loop
 **Dependencies**: PyQt6, main_window.MainWindow
 **When to modify**: Rarely - only for application-level configuration changes
 
-#### `main_window.py` (61 lines)
+#### `main_window.py`
 **Purpose**: Main application window coordinator
 **Key Responsibilities**:
 - Loads main UI file (`mainwindow.ui`)
@@ -63,7 +63,7 @@ The application follows a **modular architecture** with clear separation of conc
 
 ### Dialog Classes
 
-#### `dialogs.py` (233 lines)
+#### `dialogs.py`
 **Purpose**: Reusable edit dialogs for all entities
 **Classes**:
 - `EditSessionDialog`: Edit session ID and start date
@@ -83,12 +83,12 @@ The application follows a **modular architecture** with clear separation of conc
 
 ### Tab Manager Package
 
-#### `tab_managers/__init__.py` (19 lines)
+#### `tab_managers/__init__.py`
 **Purpose**: Package initialization and exports
 **Exports**: All tab manager classes
 **When to modify**: When adding new tab managers
 
-#### `tab_managers/objects_tab.py` (135 lines)
+#### `tab_managers/objects_tab.py`
 **Purpose**: Manages Objects tab (celestial objects like M31, NGC7000)
 **Key Methods**:
 - `setup_tab()`: Loads UI, connects signals, configures table
@@ -99,7 +99,7 @@ The application follows a **modular architecture** with clear separation of conc
 **UI Elements**: Table, name input, add/edit/delete buttons
 **Database Operations**: get_all_objects, add_object, update_object, delete_object
 
-#### `tab_managers/sessions_tab.py` (149 lines)
+#### `tab_managers/sessions_tab.py`
 **Purpose**: Manages Sessions tab (observation sessions with dates)
 **Key Methods**:
 - `setup_tab()`: Loads UI, sets current date, connects signals
@@ -110,7 +110,7 @@ The application follows a **modular architecture** with clear separation of conc
 **UI Elements**: Table, session ID input, date picker, add/edit/delete buttons
 **Special Features**: Date picker with calendar popup
 
-#### `tab_managers/cameras_tab.py` (171 lines)
+#### `tab_managers/cameras_tab.py`
 **Purpose**: Manages Cameras tab (imaging equipment specifications)
 **Key Methods**:
 - `setup_tab()`: Loads UI, connects signals, configures table columns
@@ -121,7 +121,7 @@ The application follows a **modular architecture** with clear separation of conc
 **UI Elements**: Table, name/sensor inputs, spin boxes for pixel size/dimensions
 **Validation**: Ensures all numeric fields are non-zero
 
-#### `tab_managers/filter_types_tab.py` (137 lines)
+#### `tab_managers/filter_types_tab.py`
 **Purpose**: Manages Filter Types tab (categories like Narrowband, Broadband, LRGB)
 **Key Methods**:
 - `setup_tab()`: Loads UI, connects signals
@@ -132,7 +132,7 @@ The application follows a **modular architecture** with clear separation of conc
 **UI Elements**: Table, name input, add/edit/delete buttons
 **Note**: Filter types are referenced by filters tab
 
-#### `tab_managers/filters_tab.py` (161 lines)
+#### `tab_managers/filters_tab.py`
 **Purpose**: Manages Filters tab (specific filters like Ha, OIII, Red)
 **Key Methods**:
 - `setup_tab()`: Loads UI, connects signals, updates filter type combo
@@ -144,7 +144,7 @@ The application follows a **modular architecture** with clear separation of conc
 **UI Elements**: Table, name input, filter type combo box, add/edit/delete buttons
 **Dependencies**: Requires filter types to exist
 
-#### `tab_managers/telescopes_tab.py` (181 lines)
+#### `tab_managers/telescopes_tab.py`
 **Purpose**: Manages Telescopes tab (optical equipment specifications)
 **Key Methods**:
 - `setup_tab()`: Loads UI, connects signals including f-ratio calculation
@@ -157,7 +157,7 @@ The application follows a **modular architecture** with clear separation of conc
 **Special Features**: Automatic f-ratio calculation when aperture or focal length changes
 **Formula**: f_ratio = focal_length / aperture (rounded to 1 decimal)
 
-#### `tab_managers/observations_tab.py` (235 lines)
+#### `tab_managers/observations_tab.py`
 **Purpose**: Manages Observations tab (observation records linking all entities)
 **Key Methods**:
 - `setup_tab()`: Loads UI, connects signals, configures table columns
@@ -174,17 +174,18 @@ The application follows a **modular architecture** with clear separation of conc
 **Calculated Field**: Total exposure = image_count × exposure_length (calculated in database)
 **Special Features**: QListView filter showing "< All Names >" and unique observed objects
 
-#### `tab_managers/object_stats_tab.py` (110 lines)
+#### `tab_managers/object_stats_tab.py`
 **Purpose**: Manages Object Stats tab (cumulative exposure statistics by object and filter type)
 **Key Methods**:
 - `setup_tab()`: Loads UI, gets table reference, loads initial data
 - `load_stats()`: Fetches stats from database, dynamically creates table columns based on filter types, populates table with cumulative exposures
+- `apply_conditional_formatting()`: Applies color gradient to Total column (red-yellow-green for low to high values)
 **UI Elements**: Table with dynamic columns (Object Name + filter types + Total)
 **Dependencies**: Requires observations with associated filters
 **Special Features**:
 - Dynamically generates columns based on unique filter types in observations
 - Shows cumulative total exposure for each object/filter type combination
-- Includes Total column summing all exposures per object
+- Includes Total column summing all exposures per object with conditional formatting
 - Auto-refreshes when tab is selected
 
 ## UI Files
