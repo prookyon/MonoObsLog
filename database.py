@@ -489,3 +489,21 @@ class Database:
         """)
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
+    
+    def get_monthly_stats(self) -> List[Dict]:
+        """Get cumulative exposure statistics grouped by month.
+        
+        Returns:
+            List of dictionaries containing year_month and total_exposure
+        """
+        self.cursor.execute("""
+            SELECT
+                strftime('%Y-%m', s.start_date) as year_month,
+                SUM(o.total_exposure) as total_exposure
+            FROM observations o
+            JOIN sessions s ON o.session_id = s.session_id
+            GROUP BY strftime('%Y-%m', s.start_date)
+            ORDER BY year_month
+        """)
+        rows = self.cursor.fetchall()
+        return [dict(row) for row in rows]

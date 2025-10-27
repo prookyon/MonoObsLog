@@ -13,6 +13,7 @@ from tab_managers import (
     TelescopesTabManager,
     ObservationsTabManager,
     ObjectStatsTabManager,
+    MonthlyStatsTabManager,
 )
 
 
@@ -37,6 +38,7 @@ class MainWindow(QMainWindow):
         self.telescopes_tab = TelescopesTabManager(self, self.db, self.tabWidget, self.statusbar)
         self.observations_tab = ObservationsTabManager(self, self.db, self.tabWidget, self.statusbar)
         self.object_stats_tab = ObjectStatsTabManager(self, self.db, self.tabWidget, self.statusbar)
+        self.monthly_stats_tab = MonthlyStatsTabManager(self, self.db, self.tabWidget, self.statusbar)
 
         # Connect tab change signal to update observation combos when switching to Observations tab
         self.tabWidget.currentChanged.connect(self.on_tab_changed)
@@ -57,6 +59,9 @@ class MainWindow(QMainWindow):
         elif tab_text == "Object Stats":
             # Reload stats when switching to Object Stats tab
             self.object_stats_tab.load_stats()
+        elif tab_text == "Monthly Stats":
+            # Reload stats when switching to Monthly Stats tab
+            self.monthly_stats_tab.load_stats()
 
     def closeEvent(self, event):
         """Handle window close event."""

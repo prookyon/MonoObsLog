@@ -188,6 +188,18 @@ The application follows a **modular architecture** with clear separation of conc
 - Includes Total column summing all exposures per object with conditional formatting
 - Auto-refreshes when tab is selected
 
+#### `tab_managers/monthly_stats_tab.py`
+**Purpose**: Manages Monthly Stats tab (cumulative exposure statistics by month)
+**Key Methods**:
+- `setup_tab()`: Loads UI, creates matplotlib figure and canvas, integrates with PyQt6
+- `load_stats()`: Fetches monthly stats from database, generates bar chart with months on X-axis and total exposure on Y-axis
+**UI Elements**: Bar chart widget using matplotlib
+**Dependencies**: Requires observations with associated sessions (for dates), matplotlib
+**Special Features**:
+- Bar chart visualization with proper formatting, labels, and grid
+- Displays cumulative exposure values on top of bars
+- Auto-refreshes when tab is selected
+
 ## UI Files
 
 The application uses Qt Designer `.ui` files for layouts:
@@ -200,6 +212,7 @@ The application uses Qt Designer `.ui` files for layouts:
 - `telescope_tab.ui`: Telescopes tab layout
 - `observation_tab.ui`: Observations tab layout
 - `object_stats_tab.ui`: Object Stats tab layout
+- `monthly_stats_tab.ui`: Monthly Stats tab layout
 
 **Note**: UI files are loaded dynamically using `uic.loadUi()`. Widget references are obtained using `findChild()`.
 
@@ -287,6 +300,7 @@ Tables consistently:
 ## Dependencies
 
 - **PyQt6**: GUI framework
+- **matplotlib**: Chart visualization (for Monthly Stats tab)
 - **SQLite3**: Database (built-in Python)
 - **Python 3.x**: Runtime environment
 
@@ -313,6 +327,7 @@ Key relationships:
 
 ### Statistics Queries
 - `get_object_stats()`: Aggregates observations by object name and filter type, calculating cumulative total exposure for each combination
+- `get_monthly_stats()`: Aggregates observations by month (from session dates), calculating cumulative total exposure per month
 
 ## Best Practices for Modifications
 
