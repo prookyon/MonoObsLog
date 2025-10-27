@@ -87,10 +87,11 @@ class ObjectStatsTabManager:
                 for col_idx, filter_type in enumerate(filter_types):
                     exposure = stats_dict[obj_name].get(filter_type, 0)
                     row_total += exposure
-                    self.stats_table.setItem(
-                        row_idx, 
-                        col_idx + 1, 
-                        QTableWidgetItem(str(exposure))
+                    if exposure > 0:
+                        self.stats_table.setItem(
+                            row_idx, 
+                            col_idx + 1, 
+                            QTableWidgetItem(str(exposure))
                     )
                 
                 # Total column
