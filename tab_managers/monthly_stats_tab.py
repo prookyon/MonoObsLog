@@ -1,5 +1,6 @@
 """Monthly Stats tab manager for the observation log application."""
 
+import os
 from PyQt6.QtWidgets import QWidget, QMessageBox, QVBoxLayout
 from PyQt6 import uic
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -29,7 +30,9 @@ class MonthlyStatsTabManager:
     def setup_tab(self):
         """Setup the Monthly Stats tab."""
         stats_widget = QWidget()
-        uic.loadUi('monthly_stats_tab.ui', stats_widget)
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        ui_path = os.path.join(base_dir, 'monthly_stats_tab.ui')
+        uic.loadUi(ui_path, stats_widget)
         self.tab_widget.addTab(stats_widget, "Monthly Stats")
         
         # Get reference to chart widget container

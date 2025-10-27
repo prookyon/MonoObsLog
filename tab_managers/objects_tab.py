@@ -1,5 +1,6 @@
 """Objects tab manager for the observation log application."""
 
+import os
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QInputDialog
 from PyQt6 import uic
 
@@ -26,7 +27,9 @@ class ObjectsTabManager:
     def setup_tab(self):
         """Setup the Objects tab."""
         object_widget = QWidget()
-        uic.loadUi('object_tab.ui', object_widget)
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        ui_path = os.path.join(base_dir, 'object_tab.ui')
+        uic.loadUi(ui_path, object_widget)
         self.tab_widget.addTab(object_widget, "Objects")
 
         # Store references

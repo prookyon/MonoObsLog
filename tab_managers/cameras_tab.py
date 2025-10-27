@@ -1,5 +1,6 @@
 """Cameras tab manager for the observation log application."""
 
+import os
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6 import uic
 
@@ -28,7 +29,9 @@ class CamerasTabManager:
     def setup_tab(self):
         """Setup the Cameras tab."""
         camera_widget = QWidget()
-        uic.loadUi('camera_tab.ui', camera_widget)
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        ui_path = os.path.join(base_dir, 'camera_tab.ui')
+        uic.loadUi(ui_path, camera_widget)
         self.tab_widget.addTab(camera_widget, "Cameras")
         
         # Store references

@@ -1,5 +1,6 @@
 """Main window class for the observation log application."""
 
+import os
 from PyQt6.QtWidgets import QMainWindow
 from PyQt6 import uic
 
@@ -24,7 +25,9 @@ class MainWindow(QMainWindow):
         super().__init__()
         
         # Load the main UI file
-        uic.loadUi('mainwindow.ui', self)
+        base_dir = os.path.dirname(__file__)
+        ui_path = os.path.join(base_dir, 'mainwindow.ui')
+        uic.loadUi(ui_path, self)
         
         # Initialize database
         self.db = Database()

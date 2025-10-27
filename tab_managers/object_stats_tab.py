@@ -1,5 +1,6 @@
 """Object Stats tab manager for the observation log application."""
 
+import os
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6.QtGui import QColor
 from PyQt6 import uic
@@ -27,7 +28,9 @@ class ObjectStatsTabManager:
     def setup_tab(self):
         """Setup the Object Stats tab."""
         stats_widget = QWidget()
-        uic.loadUi('object_stats_tab.ui', stats_widget)
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        ui_path = os.path.join(base_dir, 'object_stats_tab.ui')
+        uic.loadUi(ui_path, stats_widget)
         self.tab_widget.addTab(stats_widget, "Object Stats")
         
         # Store reference to table

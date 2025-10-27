@@ -1,5 +1,6 @@
 """Observations tab manager for the observation log application."""
 
+import os
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6.QtCore import QStringListModel
 from PyQt6 import uic
@@ -29,7 +30,9 @@ class ObservationsTabManager:
     def setup_tab(self):
         """Setup the Observations tab."""
         observation_widget = QWidget()
-        uic.loadUi('observation_tab.ui', observation_widget)
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        ui_path = os.path.join(base_dir, 'observation_tab.ui')
+        uic.loadUi(ui_path, observation_widget)
         self.tab_widget.addTab(observation_widget, "Observations")
         
         # Store references

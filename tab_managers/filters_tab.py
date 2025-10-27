@@ -1,5 +1,6 @@
 """Filters tab manager for the observation log application."""
 
+import os
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6 import uic
 
@@ -28,7 +29,9 @@ class FiltersTabManager:
     def setup_tab(self):
         """Setup the Filters tab."""
         filter_widget = QWidget()
-        uic.loadUi('filter_tab.ui', filter_widget)
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        ui_path = os.path.join(base_dir, 'filter_tab.ui')
+        uic.loadUi(ui_path, filter_widget)
         self.tab_widget.addTab(filter_widget, "Filters")
         
         # Store references

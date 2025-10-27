@@ -1,5 +1,6 @@
 """Sessions tab manager for the observation log application."""
 
+import os
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6.QtCore import QDate
 from PyQt6 import uic
@@ -29,7 +30,9 @@ class SessionsTabManager:
     def setup_tab(self):
         """Setup the Sessions tab."""
         session_widget = QWidget()
-        uic.loadUi('session_tab.ui', session_widget)
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        ui_path = os.path.join(base_dir, 'session_tab.ui')
+        uic.loadUi(ui_path, session_widget)
         self.tab_widget.addTab(session_widget, "Sessions")
         
         # Store references

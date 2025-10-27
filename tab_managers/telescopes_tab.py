@@ -1,5 +1,6 @@
 """Telescopes tab manager for the observation log application."""
 
+import os
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6 import uic
 
@@ -28,7 +29,9 @@ class TelescopesTabManager:
     def setup_tab(self):
         """Setup the Telescopes tab."""
         telescope_widget = QWidget()
-        uic.loadUi('telescope_tab.ui', telescope_widget)
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        ui_path = os.path.join(base_dir, 'telescope_tab.ui')
+        uic.loadUi(ui_path, telescope_widget)
         self.tab_widget.addTab(telescope_widget, "Telescopes")
         
         # Store references

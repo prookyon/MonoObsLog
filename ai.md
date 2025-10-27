@@ -273,6 +273,12 @@ Tables consistently:
 - Set appropriate column widths
 - Display data starting from column 1
 
+### UI File Loading
+All `.ui` files are loaded using relative paths to ensure the application works regardless of the current working directory:
+- Main window: `base_dir = os.path.dirname(__file__)`
+- Tab managers: `base_dir = os.path.dirname(os.path.dirname(__file__))`
+- Pattern: `ui_path = os.path.join(base_dir, 'filename.ui')` then `uic.loadUi(ui_path, widget)`
+
 ## Adding New Features
 
 ### Adding a New Tab
