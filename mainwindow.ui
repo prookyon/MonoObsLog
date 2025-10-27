@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>ObsLog</string>
   </property>
+  <property name="styleSheet">
+        <string notr="true">QTableView { selection-background-color: rgb(85, 170, 255)}</string>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
