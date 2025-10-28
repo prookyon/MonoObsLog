@@ -71,6 +71,21 @@
        <string>Start Date</string>
       </property>
      </column>
+     <column>
+      <property name="text">
+       <string>Moon Phase</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Moon RA</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Moon Dec</string>
+      </property>
+     </column>
     </widget>
    </item>
    <item>

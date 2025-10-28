@@ -42,6 +42,15 @@ The application follows a **modular architecture** with clear separation of conc
 - Adding global application behavior
 - Modifying tab change logic
 
+#### `calculations.py`
+**Purpose**: Astronomical calculations module
+**Key Functions**:
+- `calculate_moon_data(date)`: Calculates moon illumination percentage, Right Ascension (RA), and Declination (Dec) for a given date using astropy
+**Dependencies**: astropy (Time, coordinates, solar_system_ephemeris), numpy, datetime
+**Returns**: Tuple of (illumination_percent, moon_ra_degrees, moon_dec_degrees)
+**Usage**: Called automatically when adding/editing sessions to store moon data
+**When to modify**: Adding other astronomical calculations or celestial body data
+
 #### `database.py`
 **Purpose**: Database access layer
 **Key Responsibilities**:
@@ -50,12 +59,15 @@ The application follows a **modular architecture** with clear separation of conc
 - Database schema initialization
 **Entities Managed**:
 - Objects (celestial objects)
-- Sessions (observation sessions)
+- Sessions (observation sessions with moon data)
 - Cameras (imaging equipment)
 - Filter Types (categories of filters)
 - Filters (optical filters)
 - Telescopes (optical equipment)
 - Observations (observation records)
+**Moon Data Storage**:
+- Sessions table includes `moon_phase` (illumination %), `moon_ra` (Right Ascension in degrees), and `moon_dec` (Declination in degrees)
+- Moon data is automatically calculated and stored when sessions are added/edited using `calculations.calculate_moon_data()`
 **When to modify**:
 - Adding new database tables
 - Modifying existing schemas
@@ -100,15 +112,19 @@ The application follows a **modular architecture** with clear separation of conc
 **Database Operations**: get_all_objects, add_object, update_object, delete_object
 
 #### `tab_managers/sessions_tab.py`
-**Purpose**: Manages Sessions tab (observation sessions with dates)
+**Purpose**: Manages Sessions tab (observation sessions with dates and moon data)
 **Key Methods**:
-- `setup_tab()`: Loads UI, sets current date, connects signals
-- `load_sessions()`: Fetches and displays all sessions
-- `add_session()`: Adds new session with ID and date
-- `edit_session()`: Opens EditSessionDialog for editing
+- `setup_tab()`: Loads UI, sets current date, connects signals, configures table columns
+- `load_sessions()`: Fetches and displays sessions including moon phase, RA, and Dec
+- `add_session()`: Adds new session with ID, date, and automatically calculates moon data
+- `edit_session()`: Opens EditSessionDialog, recalculates moon data on date change
 - `delete_session()`: Deletes session with confirmation
-**UI Elements**: Table, session ID input, date picker, add/edit/delete buttons
-**Special Features**: Date picker with calendar popup
+**UI Elements**: Table (with moon columns), session ID input, date picker, add/edit/delete buttons
+**Dependencies**: calculations.calculate_moon_data()
+**Special Features**:
+- Date picker with calendar popup
+- Automatic moon data calculation for midnight following the start date
+- Displays moon illumination percentage, RA, and Dec in table
 
 #### `tab_managers/cameras_tab.py`
 **Purpose**: Manages Cameras tab (imaging equipment specifications)
@@ -306,7 +322,8 @@ All `.ui` files are loaded using relative paths to ensure the application works 
 ## Dependencies
 
 - **PyQt6**: GUI framework
-- **matplotlib**: Chart visualization (for Monthly Stats tab)
+- **matplotlib**: Chart visualization (Monthly Stats tab)
+- **astropy**: Astronomical calculations (Moon data computation)
 - **SQLite3**: Database (built-in Python)
 - **Python 3.x**: Runtime environment
 

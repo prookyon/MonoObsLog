@@ -26,7 +26,10 @@ class Database:
             CREATE TABLE IF NOT EXISTS sessions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 session_id TEXT NOT NULL UNIQUE,
-                start_date TEXT NOT NULL
+                start_date TEXT NOT NULL,
+                moon_phase REAL,
+                moon_ra REAL,
+                moon_dec REAL
             )
         """)
         
@@ -155,26 +158,26 @@ class Database:
         self.connection.close()
     # ==================== Session Methods ====================
     
-    def add_session(self, session_id: str, start_date: str) -> int:
+    def add_session(self, session_id: str, start_date: str, moon_phase: float = None, moon_ra: float = None, moon_dec: float = None) -> int:
         """Add a new session to the database."""
         self.cursor.execute(
-            "INSERT INTO sessions (session_id, start_date) VALUES (?, ?)",
-            (session_id, start_date)
+            "INSERT INTO sessions (session_id, start_date, moon_phase, moon_ra, moon_dec) VALUES (?, ?, ?, ?, ?)",
+            (session_id, start_date, moon_phase, moon_ra, moon_dec)
         )
         self.connection.commit()
         return self.cursor.lastrowid
     
     def get_all_sessions(self) -> List[Dict]:
         """Get all sessions from the database."""
-        self.cursor.execute("SELECT id, session_id, start_date FROM sessions ORDER BY id")
+        self.cursor.execute("SELECT id, session_id, start_date, moon_phase, moon_ra, moon_dec FROM sessions ORDER BY id")
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
     
-    def update_session(self, session_id: int, new_session_id: str, start_date: str) -> bool:
+    def update_session(self, session_id: int, new_session_id: str, start_date: str, moon_phase: float = None, moon_ra: float = None, moon_dec: float = None) -> bool:
         """Update an existing session."""
         self.cursor.execute(
-            "UPDATE sessions SET session_id = ?, start_date = ? WHERE id = ?",
-            (new_session_id, start_date, session_id)
+            "UPDATE sessions SET session_id = ?, start_date = ?, moon_phase = ?, moon_ra = ?, moon_dec = ? WHERE id = ?",
+            (new_session_id, start_date, moon_phase, moon_ra, moon_dec, session_id)
         )
         self.connection.commit()
         return self.cursor.rowcount > 0
@@ -492,7 +495,7 @@ class Database:
     
     def get_monthly_stats(self) -> List[Dict]:
         """Get cumulative exposure statistics grouped by month.
-        
+
         Returns:
             List of dictionaries containing year_month and total_exposure
         """

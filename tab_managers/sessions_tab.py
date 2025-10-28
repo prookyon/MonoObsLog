@@ -1,11 +1,13 @@
 """Sessions tab manager for the observation log application."""
 
 import os
+import datetime
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6.QtCore import QDate
 from PyQt6 import uic
 
 from dialogs import EditSessionDialog
+from calculations import calculate_moon_data
 
 
 class SessionsTabManager:
@@ -54,8 +56,11 @@ class SessionsTabManager:
         
         # Hide ID column
         self.sessions_table.setColumnHidden(0, True)
-        self.sessions_table.setColumnWidth(1, 300)
-        self.sessions_table.setColumnWidth(2, 300)
+        self.sessions_table.setColumnWidth(1, 200)
+        self.sessions_table.setColumnWidth(2, 150)
+        self.sessions_table.setColumnWidth(3, 100)
+        self.sessions_table.setColumnWidth(4, 100)
+        self.sessions_table.setColumnWidth(5, 100)
         
         self.load_sessions()
     
@@ -64,12 +69,15 @@ class SessionsTabManager:
         try:
             sessions = self.db.get_all_sessions()
             self.sessions_table.setRowCount(len(sessions))
-            
+
             for row, session in enumerate(sessions):
                 self.sessions_table.setItem(row, 0, QTableWidgetItem(str(session['id'])))
                 self.sessions_table.setItem(row, 1, QTableWidgetItem(session['session_id']))
                 self.sessions_table.setItem(row, 2, QTableWidgetItem(session['start_date']))
-            
+                self.sessions_table.setItem(row, 3, QTableWidgetItem(f"{session['moon_phase']:.2f}%" if session['moon_phase'] is not None else ""))
+                self.sessions_table.setItem(row, 4, QTableWidgetItem(f"{session['moon_ra']:.2f}°" if session['moon_ra'] is not None else ""))
+                self.sessions_table.setItem(row, 5, QTableWidgetItem(f"{session['moon_dec']:.2f}°" if session['moon_dec'] is not None else ""))
+
             self.statusbar.showMessage(f'Loaded {len(sessions)} session(s)')
         except Exception as e:
             QMessageBox.critical(self.parent, 'Error', f'Failed to load sessions: {str(e)}')
@@ -89,7 +97,11 @@ class SessionsTabManager:
             return
 
         try:
-            self.db.add_session(session_id, start_date)
+            # Calculate moon data for the midnight following the start date
+            start_date_plus_one = datetime.datetime.strptime(start_date, "%Y-%m-%d") + datetime.timedelta(days=1)
+            moon_phase, moon_ra, moon_dec = calculate_moon_data(start_date_plus_one.isoformat())
+
+            self.db.add_session(session_id, start_date, moon_phase, moon_ra, moon_dec)
             self.session_id_line_edit.clear()
             self.start_date_edit.setDate(QDate.currentDate())
             self.load_sessions()
@@ -120,7 +132,11 @@ class SessionsTabManager:
                 return
 
             try:
-                self.db.update_session(session_id, new_session_id, new_start_date)
+                # Calculate moon data for the new date
+                new_start_date_plus_one = datetime.datetime.strptime(new_start_date, "%Y-%m-%d") + datetime.timedelta(days=1)
+                moon_phase, moon_ra, moon_dec = calculate_moon_data(new_start_date_plus_one.isoformat())
+
+                self.db.update_session(session_id, new_session_id, new_start_date, moon_phase, moon_ra, moon_dec)
                 self.load_sessions()
                 self.statusbar.showMessage(f'Updated session ID {session_id}')
             except Exception as e:
