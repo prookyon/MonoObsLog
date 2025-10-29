@@ -73,6 +73,15 @@ The application follows a **modular architecture** with clear separation of conc
 - Modifying existing schemas
 - Adding new queries or operations
 
+#### `utilities.py`
+**Purpose**: Console utilities for astronomical calculations and database maintenance
+**Key Functions**:
+- `--calc-moon`: Recalculates moon phase, Right Ascension, and Declination for all sessions in database
+- `calculate_moon_data_for_all_sessions()`: Core function that processes all sessions and updates moon data
+**Dependencies**: calculations.py, database.py, argparse, datetime
+**Usage**: Command-line interface for batch operations on moon data
+**When to modify**: Adding new console utilities or batch processing features
+
 ### Dialog Classes
 
 #### `dialogs.py`
