@@ -233,3 +233,77 @@ class EditObservationDialog(QDialog):
             self.exposure_spin.value(),
             self.comments_edit.text()
         )
+
+
+class EditObjectDialog(QDialog):
+    """Dialog for editing object data with coordinate lookup capability."""
+    
+    def __init__(self, name, ra=None, dec=None, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Edit Object")
+        self.ra_value = ra
+        self.dec_value = dec
+        
+        layout = QFormLayout()
+        
+        self.name_edit = QLineEdit(name)
+        self.ra_spin = QDoubleSpinBox()
+        self.ra_spin.setDecimals(6)
+        self.ra_spin.setMinimum(0.0)
+        self.ra_spin.setMaximum(24.0)
+        self.ra_spin.setValue(ra if ra is not None else 0.0)
+        
+        self.dec_spin = QDoubleSpinBox()
+        self.dec_spin.setDecimals(6)
+        self.dec_spin.setMinimum(-90.0)
+        self.dec_spin.setMaximum(90.0)
+        self.dec_spin.setValue(dec if dec is not None else 0.0)
+        
+        layout.addRow("Object Name:", self.name_edit)
+        layout.addRow("RA (hours, 0-24):", self.ra_spin)
+        layout.addRow("Dec (degrees, -90 to +90):", self.dec_spin)
+        
+        # Add lookup button
+        from PyQt6.QtWidgets import QPushButton, QHBoxLayout
+        lookup_button = QPushButton("Lookup Coordinates")
+        lookup_button.clicked.connect(self.lookup_coordinates)
+        layout.addRow("Online Lookup:", lookup_button)
+        
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addRow(buttons)
+        
+        self.setLayout(layout)
+    
+    def lookup_coordinates(self):
+        """Look up coordinates using astropy."""
+        from calculations import lookup_object_coordinates
+        
+        object_name = self.name_edit.text().strip()
+        if not object_name:
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.warning(self, 'Warning', 'Please enter an object name to look up.')
+            return
+        
+        try:
+            ra_degrees, dec = lookup_object_coordinates(object_name)
+            # Convert RA from degrees to hours (1 hour = 15 degrees)
+            ra_hours = ra_degrees / 15.0
+            self.ra_spin.setValue(ra_hours)
+            self.dec_spin.setValue(dec)
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.information(self, 'Success', f'Found coordinates for {object_name}:\nRA: {ra_hours:.6f}h\nDec: {dec:.6f}°')
+        except Exception as e:
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.critical(self, 'Lookup Error', str(e))
+    
+    def get_values(self):
+        """Return the edited values."""
+        return (
+            self.name_edit.text(),
+            self.ra_spin.value() if self.ra_spin.value() > 0 else None,
+            self.dec_spin.value() if self.dec_spin.value() != 0 else None
+        )

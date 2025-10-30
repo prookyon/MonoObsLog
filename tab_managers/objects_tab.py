@@ -3,6 +3,7 @@
 import os
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QInputDialog
 from PyQt6 import uic
+from dialogs import EditObjectDialog
 
 
 class ObjectsTabManager:
@@ -47,7 +48,9 @@ class ObjectsTabManager:
 
         # Hide ID column
         self.objects_table.setColumnHidden(0, True)
-        self.objects_table.setColumnWidth(1, 600)
+        self.objects_table.setColumnWidth(1, 300)
+        self.objects_table.setColumnWidth(2, 150)
+        self.objects_table.setColumnWidth(3, 150)
 
         self.load_objects()
     
@@ -60,6 +63,14 @@ class ObjectsTabManager:
             for row, obj in enumerate(objects):
                 self.objects_table.setItem(row, 0, QTableWidgetItem(str(obj['id'])))
                 self.objects_table.setItem(row, 1, QTableWidgetItem(obj['name']))
+                
+                # Display RA coordinate in hours (or empty if None)
+                ra_text = f"{obj['ra']:.6f}h" if obj['ra'] is not None else ""
+                self.objects_table.setItem(row, 2, QTableWidgetItem(ra_text))
+                
+                # Display Dec coordinate (or empty if None)
+                dec_text = f"{obj['dec']:.6f}°" if obj['dec'] is not None else ""
+                self.objects_table.setItem(row, 3, QTableWidgetItem(dec_text))
             
             self.statusbar.showMessage(f'Loaded {len(objects)} object(s)')
         except Exception as e:
@@ -79,10 +90,14 @@ class ObjectsTabManager:
             return
 
         try:
-            self.db.add_object(name)
-            self.name_line_edit.clear()
-            self.load_objects()
-            self.statusbar.showMessage(f'Added object: {name}')
+            # Open dialog for optional coordinate entry
+            dialog = EditObjectDialog(name, parent=self.parent)
+            if dialog.exec() == EditObjectDialog.DialogCode.Accepted:
+                obj_name, ra, dec = dialog.get_values()
+                self.db.add_object(obj_name, ra, dec)
+                self.name_line_edit.clear()
+                self.load_objects()
+                self.statusbar.showMessage(f'Added object: {obj_name}')
         except Exception as e:
             QMessageBox.critical(self.parent, 'Error', f'Failed to add object: {str(e)}')
     
@@ -97,20 +112,25 @@ class ObjectsTabManager:
         row = self.objects_table.currentRow()
         object_id = int(self.objects_table.item(row, 0).text())
         current_name = self.objects_table.item(row, 1).text()
+        current_ra = self.objects_table.item(row, 2).text()
+        current_dec = self.objects_table.item(row, 3).text()
+        
+        # Convert empty strings to None for coordinates, strip units
+        ra = float(current_ra.rstrip('h')) if current_ra else None
+        dec = float(current_dec.rstrip('°')) if current_dec else None
 
-        new_name, ok = QInputDialog.getText(
-            self.parent, 'Edit Object', 'Enter new name:', text=current_name
-        )
-
-        if ok and new_name.strip():
+        dialog = EditObjectDialog(current_name, ra, dec, parent=self.parent)
+        if dialog.exec() == EditObjectDialog.DialogCode.Accepted:
+            new_name, new_ra, new_dec = dialog.get_values()
             new_name = new_name.strip()
+            
             # Check for duplicate object name, excluding the current object
-            if self.db.object_name_exists(new_name, exclude_id=object_id):
+            if new_name != current_name and self.db.object_name_exists(new_name, exclude_id=object_id):
                 QMessageBox.warning(self.parent, 'Warning', f'Object name "{new_name}" already exists. Please choose a unique object name.')
                 return
 
             try:
-                self.db.update_object(object_id, new_name)
+                self.db.update_object(object_id, new_name, new_ra, new_dec)
                 self.load_objects()
                 self.statusbar.showMessage(f'Updated object ID {object_id}')
             except Exception as e:

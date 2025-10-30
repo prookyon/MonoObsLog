@@ -59,3 +59,47 @@ def calculate_moon_data(date: str) -> tuple[float, float, float]:
     illumination_percent = float(illumination_fraction * 100.0)
 
     return illumination_percent, float(moon.ra.degree), float(moon.dec.degree)
+
+
+def lookup_object_coordinates(object_name: str) -> tuple[float, float]:
+    """
+    Look up equatorial coordinates for a celestial object using astropy's online resolver.
+    
+    Uses the Simbad astronomical database to resolve object names to coordinates.
+    
+    Parameters:
+    -----------
+    object_name : str
+        Name of the celestial object (e.g., 'M31', 'NGC7000', 'Andromeda Galaxy')
+    
+    Returns:
+    --------
+    tuple[float, float] : (ra_degrees, dec_degrees)
+        Right Ascension in degrees (0-360)
+        Declination in degrees (-90 to +90)
+    
+    Raises:
+    -------
+    Exception : If object cannot be resolved or network error occurs
+        Includes descriptive error message for user feedback
+    """
+    try:
+        from astropy.coordinates import SkyCoord
+        
+        # Query Simbad database for object coordinates
+        coord = SkyCoord.from_name(object_name)
+        
+        ra_degrees = float(coord.ra.degree)
+        dec_degrees = float(coord.dec.degree)
+        
+        return ra_degrees, dec_degrees
+    
+    except Exception as e:
+        # Provide user-friendly error messages
+        error_msg = str(e)
+        if "Unable to find coordinates" in error_msg or "name could not be resolved" in error_msg.lower():
+            raise Exception(f"Object '{object_name}' not found in Simbad database. Please check the spelling and try again.")
+        elif "Connection" in error_msg or "timeout" in error_msg.lower():
+            raise Exception(f"Network error while looking up '{object_name}'. Please check your internet connection and try again.")
+        else:
+            raise Exception(f"Failed to look up coordinates for '{object_name}': {error_msg}")

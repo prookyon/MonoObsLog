@@ -46,9 +46,18 @@ The application follows a **modular architecture** with clear separation of conc
 **Purpose**: Astronomical calculations module
 **Key Functions**:
 - `calculate_moon_data(date)`: Calculates moon illumination percentage, Right Ascension (RA), and Declination (Dec) for a given date using astropy
-**Dependencies**: astropy (Time, coordinates, solar_system_ephemeris), numpy, datetime
-**Returns**: Tuple of (illumination_percent, moon_ra_degrees, moon_dec_degrees)
-**Usage**: Called automatically when adding/editing sessions to store moon data
+- `lookup_object_coordinates(object_name)`: Queries Simbad astronomical database via astropy to resolve object names to equatorial coordinates (returns RA in degrees)
+**Dependencies**: astropy (Time, coordinates, solar_system_ephemeris, SkyCoord), numpy, datetime
+**Returns**:
+  - `calculate_moon_data()`: Tuple of (illumination_percent, moon_ra_degrees, moon_dec_degrees)
+  - `lookup_object_coordinates()`: Tuple of (ra_degrees, dec_degrees) or raises Exception with user-friendly error message
+**Usage**:
+  - Moon data: Called automatically when adding/editing sessions to store moon data
+  - Object coordinates: Called when user clicks "Lookup Coordinates" button in EditObjectDialog; RA is converted from degrees to hours for storage
+**Storage Format**:
+  - RA: Stored in decimal hours (0-24h, where 1h = 15°)
+  - Dec: Stored in decimal degrees (-90° to +90°)
+**Error Handling**: Provides descriptive error messages for network issues, unknown objects, and other failures
 **When to modify**: Adding other astronomical calculations or celestial body data
 
 #### `database.py`
@@ -58,13 +67,17 @@ The application follows a **modular architecture** with clear separation of conc
 - CRUD operations for all entities
 - Database schema initialization
 **Entities Managed**:
-- Objects (celestial objects)
+- Objects (celestial objects with optional equatorial coordinates)
 - Sessions (observation sessions with moon data)
 - Cameras (imaging equipment)
 - Filter Types (categories of filters)
 - Filters (optical filters)
 - Telescopes (optical equipment)
 - Observations (observation records)
+**Object Coordinate Storage**:
+- Objects table includes optional `ra` (decimal hours, 0-24h) and `dec` (decimal degrees, -90° to +90°)
+- Coordinates are NULL by default
+- Can be set manually or via astropy online lookup (lookup returns degrees, converted to hours for storage)
 **Moon Data Storage**:
 - Sessions table includes `moon_phase` (illumination %), `moon_ra` (Right Ascension in degrees), and `moon_dec` (Declination in degrees)
 - Moon data is automatically calculated and stored when sessions are added/edited using `calculations.calculate_moon_data()`
@@ -92,11 +105,19 @@ The application follows a **modular architecture** with clear separation of conc
 - `EditFilterDialog`: Edit filter name and type
 - `EditTelescopeDialog`: Edit telescope parameters (name, aperture, f-ratio, focal length)
 - `EditObservationDialog`: Edit observation records (all fields with combo boxes)
+- `EditObjectDialog`: Edit object name and optional equatorial coordinates (RA/Dec) with online lookup capability
 **Pattern**: All dialogs follow the same structure:
 1. Constructor accepts current values and parent
 2. `get_values()` method returns edited values as tuple
 3. Uses QFormLayout with OK/Cancel buttons
-**Dependencies**: PyQt6 widgets
+**EditObjectDialog Special Features**:
+- RA spin box: 0-24 hours (stored in decimal hour format)
+- Dec spin box: -90 to +90 degrees
+- "Lookup Coordinates" button: Queries Simbad database via astropy to auto-populate coordinates (converts RA from degrees to hours)
+- Error handling: Shows user-friendly messages for network issues and unknown objects
+- Returns None for coordinates if not set (supports optional coordinates)
+- Display format: RA shown as "X.XXXXXXh", Dec shown as "X.XXXXXX°"
+**Dependencies**: PyQt6 widgets, calculations.lookup_object_coordinates()
 **When to modify**:
 - Adding new fields to entities
 - Changing validation logic
@@ -110,15 +131,22 @@ The application follows a **modular architecture** with clear separation of conc
 **When to modify**: When adding new tab managers
 
 #### `tab_managers/objects_tab.py`
-**Purpose**: Manages Objects tab (celestial objects like M31, NGC7000)
+**Purpose**: Manages Objects tab (celestial objects like M31, NGC7000) with optional equatorial coordinates
 **Key Methods**:
-- `setup_tab()`: Loads UI, connects signals, configures table
-- `load_objects()`: Fetches and displays all objects
-- `add_object()`: Adds new object to database
-- `edit_object()`: Opens input dialog to edit object name
+- `setup_tab()`: Loads UI, connects signals, configures table with RA/Dec columns
+- `load_objects()`: Fetches and displays all objects including coordinates (RA in hours with 'h' suffix, Dec in degrees with '°' suffix)
+- `add_object()`: Opens EditObjectDialog for object name and optional coordinate entry or lookup
+- `edit_object()`: Opens EditObjectDialog to edit object name and coordinates
 - `delete_object()`: Deletes object with confirmation
-**UI Elements**: Table, name input, add/edit/delete buttons
+**UI Elements**: Table (with RA in hours and Dec in degrees columns), name input, add/edit/delete buttons
 **Database Operations**: get_all_objects, add_object, update_object, delete_object
+**Special Features**:
+- Optional equatorial coordinate storage (RA in decimal hours 0-24h, Dec in decimal degrees -90° to +90°)
+- Manual coordinate entry via spin boxes in EditObjectDialog (RA in hours, Dec in degrees)
+- Online coordinate lookup via astropy Simbad resolver with "Lookup Coordinates" button (converts RA from degrees to hours)
+- Coordinates display as empty strings if not set
+- User-friendly error messages for network issues and unknown object names
+- Display precision: 6 decimal places for both RA and Dec
 
 #### `tab_managers/sessions_tab.py`
 **Purpose**: Manages Sessions tab (observation sessions with dates and moon data)

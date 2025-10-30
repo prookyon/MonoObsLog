@@ -63,6 +63,16 @@
        <string>Name</string>
       </property>
      </column>
+     <column>
+      <property name="text">
+       <string>RA (h)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Dec (°)</string>
+      </property>
+     </column>
     </widget>
    </item>
    <item>

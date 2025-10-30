@@ -17,7 +17,9 @@ class Database:
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS objects (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL UNIQUE
+                name TEXT NOT NULL UNIQUE,
+                ra REAL,
+                dec REAL
             )
         """)
         
@@ -97,18 +99,20 @@ class Database:
         
         self.connection.commit()
     
-    def add_object(self, name: str) -> int:
+    def add_object(self, name: str, ra: Optional[float] = None, dec: Optional[float] = None) -> int:
         """Add a new object to the database.
         
         Args:
             name: The name of the object
+            ra: Optional Right Ascension in degrees (0-360)
+            dec: Optional Declination in degrees (-90 to +90)
             
         Returns:
             The ID of the newly created object
         """
         self.cursor.execute(
-            "INSERT INTO objects (name) VALUES (?)",
-            (name,)
+            "INSERT INTO objects (name, ra, dec) VALUES (?, ?, ?)",
+            (name, ra, dec)
         )
         self.connection.commit()
         return self.cursor.lastrowid
@@ -117,25 +121,27 @@ class Database:
         """Get all objects from the database.
         
         Returns:
-            List of dictionaries containing object data
+            List of dictionaries containing object data (id, name, ra, dec)
         """
-        self.cursor.execute("SELECT id, name FROM objects ORDER BY id")
+        self.cursor.execute("SELECT id, name, ra, dec FROM objects ORDER BY id")
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
     
-    def update_object(self, object_id: int, name: str) -> bool:
+    def update_object(self, object_id: int, name: str, ra: Optional[float] = None, dec: Optional[float] = None) -> bool:
         """Update an existing object.
         
         Args:
             object_id: The ID of the object to update
             name: The new name for the object
+            ra: Optional Right Ascension in degrees (0-360)
+            dec: Optional Declination in degrees (-90 to +90)
             
         Returns:
             True if the update was successful, False otherwise
         """
         self.cursor.execute(
-            "UPDATE objects SET name = ? WHERE id = ?",
-            (name, object_id)
+            "UPDATE objects SET name = ?, ra = ?, dec = ? WHERE id = ?",
+            (name, ra, dec, object_id)
         )
         self.connection.commit()
         return self.cursor.rowcount > 0
