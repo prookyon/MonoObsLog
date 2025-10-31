@@ -3,6 +3,7 @@
 import os
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6.QtCore import QStringListModel
+from PyQt6.QtGui import QColor
 from PyQt6 import uic
 
 from dialogs import EditObservationDialog
@@ -140,9 +141,11 @@ class ObservationsTabManager:
             for row, obs in enumerate(observations):
                 # Calculate angular separation if coordinates are available
                 angular_sep = ""
+                angular_sep_value = None
                 if obs['ra'] is not None and obs['dec'] is not None and obs['moon_ra'] is not None and obs['moon_dec'] is not None:
                     try:
-                        angular_sep = f"{calculate_angular_separation(obs['ra']*15.0, obs['dec'], obs['moon_ra'], obs['moon_dec']):.0f}°"
+                        angular_sep_value = calculate_angular_separation(obs['ra']*15.0, obs['dec'], obs['moon_ra'], obs['moon_dec'])
+                        angular_sep = f"{angular_sep_value:.0f}°"
                     except Exception:
                         angular_sep = "N/A"
 
@@ -156,8 +159,27 @@ class ObservationsTabManager:
                 self.observations_table.setItem(row, 7, QTableWidgetItem(str(obs['image_count'])))
                 self.observations_table.setItem(row, 8, QTableWidgetItem(str(obs['exposure_length'])))
                 self.observations_table.setItem(row, 9, QTableWidgetItem(str(obs['total_exposure'])))
-                self.observations_table.setItem(row, 10, QTableWidgetItem(f"{obs['moon_phase']:.1f}%" if obs['moon_phase'] is not None else ""))
-                self.observations_table.setItem(row, 11, QTableWidgetItem(angular_sep))
+
+                # Moon Phase column with conditional highlighting
+                moon_phase_item = QTableWidgetItem(f"{obs['moon_phase']:.1f}%" if obs['moon_phase'] is not None else "")
+                if obs['moon_phase'] is not None and obs['moon_phase'] > 75:
+                    # For pastel: high value, low-to-medium saturation
+                    saturation = 40  # 0-100, lower = more pastel
+                    value_hsv = 95   # 0-100, brightness
+                    color = QColor.fromHsv(0, int(saturation * 255 / 100), int(value_hsv * 255 / 100))
+                    moon_phase_item.setBackground(color)
+                self.observations_table.setItem(row, 10, moon_phase_item)
+
+                # Angular Separation column with conditional highlighting
+                angular_sep_item = QTableWidgetItem(angular_sep)
+                if angular_sep_value is not None and angular_sep_value < 60:
+                    # For pastel: high value, low-to-medium saturation
+                    saturation = 40  # 0-100, lower = more pastel
+                    value_hsv = 95   # 0-100, brightness
+                    color = QColor.fromHsv(0, int(saturation * 255 / 100), int(value_hsv * 255 / 100))
+                    angular_sep_item.setBackground(color)
+                self.observations_table.setItem(row, 11, angular_sep_item)
+
                 self.observations_table.setItem(row, 12, QTableWidgetItem(obs['comments'] or ''))
             self.observations_table.resizeColumnsToContents()
             self.statusbar.showMessage(f'Loaded {len(observations)} observation(s)')
