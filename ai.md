@@ -47,13 +47,16 @@ The application follows a **modular architecture** with clear separation of conc
 **Key Functions**:
 - `calculate_moon_data(date)`: Calculates moon illumination percentage, Right Ascension (RA), and Declination (Dec) for a given date using astropy
 - `lookup_object_coordinates(object_name)`: Queries Simbad astronomical database via astropy to resolve object names to equatorial coordinates (returns RA in degrees)
+- `calculate_angular_separation(ra1_deg, dec1_deg, ra2_deg, dec2_deg)`: Calculates angular separation between two celestial coordinates using astropy
 **Dependencies**: astropy (Time, coordinates, solar_system_ephemeris, SkyCoord), numpy, datetime
 **Returns**:
   - `calculate_moon_data()`: Tuple of (illumination_percent, moon_ra_degrees, moon_dec_degrees)
   - `lookup_object_coordinates()`: Tuple of (ra_degrees, dec_degrees) or raises Exception with user-friendly error message
+  - `calculate_angular_separation()`: Angular separation in degrees (float)
 **Usage**:
   - Moon data: Called automatically when adding/editing sessions to store moon data
   - Object coordinates: Called when user clicks "Lookup Coordinates" button in EditObjectDialog; RA is converted from degrees to hours for storage
+  - Angular separation: Used in observations tab to show distance between observed objects and moon
 **Storage Format**:
   - RA: Stored in decimal hours (0-24h, where 1h = 15°)
   - Dec: Stored in decimal degrees (-90° to +90°)
@@ -225,7 +228,10 @@ The application follows a **modular architecture** with clear separation of conc
 **Dependencies**: Requires data in all other tabs (sessions, objects, cameras, telescopes, filters)
 **Validation**: Ensures all required fields are selected and numeric values are non-zero
 **Calculated Field**: Total exposure = image_count × exposure_length (calculated in database)
-**Special Features**: QListView filter showing "< All Names >" and unique observed objects
+**Special Features**:
+- QListView filter showing "< All Names >" and unique observed objects
+- Displays session date, moon phase percentage, and angular separation between object and moon
+- Conditional highlighting: pastel red background for moon phase > 75% and angular separation < 60°
 
 #### `tab_managers/object_stats_tab.py`
 **Purpose**: Manages Object Stats tab (cumulative exposure statistics by object and filter type)
