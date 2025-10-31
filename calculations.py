@@ -1,5 +1,5 @@
 from astropy.time import Time
-from astropy.coordinates import get_body, get_sun, solar_system_ephemeris
+from astropy.coordinates import get_body, get_sun, solar_system_ephemeris, SkyCoord
 from astropy.coordinates import EarthLocation
 import astropy.units as u
 import numpy as np
@@ -61,39 +61,64 @@ def calculate_moon_data(date: str) -> tuple[float, float, float]:
     return illumination_percent, float(moon.ra.degree), float(moon.dec.degree)
 
 
+def calculate_angular_separation(ra1_deg: float, dec1_deg: float, ra2_deg: float, dec2_deg: float) -> float:
+    """
+    Calculate the angular separation between two points on the celestial sphere.
+
+    Parameters:
+    -----------
+    ra1_deg : float
+        Right Ascension of first point in degrees
+    dec1_deg : float
+        Declination of first point in degrees
+    ra2_deg : float
+        Right Ascension of second point in degrees
+    dec2_deg : float
+        Declination of second point in degrees
+
+    Returns:
+    --------
+    float : Angular separation in degrees
+    """
+
+    coord1 = SkyCoord(ra=ra1_deg*u.degree, dec=dec1_deg*u.degree)
+    coord2 = SkyCoord(ra=ra2_deg*u.degree, dec=dec2_deg*u.degree)
+
+    return float(coord1.separation(coord2).degree)
+
+
 def lookup_object_coordinates(object_name: str) -> tuple[float, float]:
     """
     Look up equatorial coordinates for a celestial object using astropy's online resolver.
-    
+
     Uses the Simbad astronomical database to resolve object names to coordinates.
-    
+
     Parameters:
     -----------
     object_name : str
         Name of the celestial object (e.g., 'M31', 'NGC7000', 'Andromeda Galaxy')
-    
+
     Returns:
     --------
     tuple[float, float] : (ra_degrees, dec_degrees)
         Right Ascension in degrees (0-360)
         Declination in degrees (-90 to +90)
-    
+
     Raises:
     -------
     Exception : If object cannot be resolved or network error occurs
         Includes descriptive error message for user feedback
     """
     try:
-        from astropy.coordinates import SkyCoord
-        
+
         # Query Simbad database for object coordinates
         coord = SkyCoord.from_name(object_name)
-        
+
         ra_degrees = float(coord.ra.degree)
         dec_degrees = float(coord.dec.degree)
-        
+
         return ra_degrees, dec_degrees
-    
+
     except Exception as e:
         # Provide user-friendly error messages
         error_msg = str(e)

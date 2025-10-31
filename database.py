@@ -450,10 +450,13 @@ class Database:
     def get_all_observations(self) -> List[Dict]:
         """Get all observations from the database."""
         self.cursor.execute("""
-            SELECT id, session_id, object_name, camera_name, telescope_name,
-                   filter_name, image_count, exposure_length, total_exposure, comments
-            FROM observations
-            ORDER BY id
+            SELECT o.id, o.session_id, o.object_name, o.camera_name, o.telescope_name,
+                   o.filter_name, o.image_count, o.exposure_length, o.total_exposure, o.comments,
+                   s.moon_phase, s.moon_ra, s.moon_dec, s.start_date, obj.ra, obj.dec
+            FROM observations o
+            JOIN sessions s ON o.session_id = s.session_id
+            JOIN objects obj ON o.object_name = obj.name
+            ORDER BY o.id
         """)
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]

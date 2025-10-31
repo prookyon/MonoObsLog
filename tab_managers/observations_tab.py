@@ -6,6 +6,7 @@ from PyQt6.QtCore import QStringListModel
 from PyQt6 import uic
 
 from dialogs import EditObservationDialog
+from calculations import calculate_angular_separation
 
 
 class ObservationsTabManager:
@@ -63,14 +64,17 @@ class ObservationsTabManager:
         # Hide ID column
         self.observations_table.setColumnHidden(0, True)
         self.observations_table.setColumnWidth(1, 100)  # Session ID
-        self.observations_table.setColumnWidth(2, 100)  # Object
-        self.observations_table.setColumnWidth(3, 100)  # Camera
-        self.observations_table.setColumnWidth(4, 100)  # Telescope
-        self.observations_table.setColumnWidth(5, 80)   # Filter
-        self.observations_table.setColumnWidth(6, 60)   # Images
-        self.observations_table.setColumnWidth(7, 80)   # Exposure
-        self.observations_table.setColumnWidth(8, 100)  # Total Exposure
-        self.observations_table.setColumnWidth(9, 200)  # Comments
+        self.observations_table.setColumnWidth(2, 80)   # Date
+        self.observations_table.setColumnWidth(3, 100)  # Object
+        self.observations_table.setColumnWidth(4, 100)  # Camera
+        self.observations_table.setColumnWidth(5, 100)  # Telescope
+        self.observations_table.setColumnWidth(6, 80)   # Filter
+        self.observations_table.setColumnWidth(7, 60)   # Images
+        self.observations_table.setColumnWidth(8, 80)   # Exposure
+        self.observations_table.setColumnWidth(9, 100)  # Total Exposure
+        self.observations_table.setColumnWidth(10, 80)  # Moon Phase
+        self.observations_table.setColumnWidth(11, 100) # Angular Separation
+        self.observations_table.setColumnWidth(12, 200) # Comments
         
         self.load_observations()
         self.update_observation_combos()
@@ -134,16 +138,27 @@ class ObservationsTabManager:
             self.observations_table.setRowCount(len(observations))
 
             for row, obs in enumerate(observations):
+                # Calculate angular separation if coordinates are available
+                angular_sep = ""
+                if obs['ra'] is not None and obs['dec'] is not None and obs['moon_ra'] is not None and obs['moon_dec'] is not None:
+                    try:
+                        angular_sep = f"{calculate_angular_separation(obs['ra']*15.0, obs['dec'], obs['moon_ra'], obs['moon_dec']):.0f}°"
+                    except Exception:
+                        angular_sep = "N/A"
+
                 self.observations_table.setItem(row, 0, QTableWidgetItem(str(obs['id'])))
                 self.observations_table.setItem(row, 1, QTableWidgetItem(obs['session_id']))
-                self.observations_table.setItem(row, 2, QTableWidgetItem(obs['object_name']))
-                self.observations_table.setItem(row, 3, QTableWidgetItem(obs['camera_name']))
-                self.observations_table.setItem(row, 4, QTableWidgetItem(obs['telescope_name']))
-                self.observations_table.setItem(row, 5, QTableWidgetItem(obs['filter_name']))
-                self.observations_table.setItem(row, 6, QTableWidgetItem(str(obs['image_count'])))
-                self.observations_table.setItem(row, 7, QTableWidgetItem(str(obs['exposure_length'])))
-                self.observations_table.setItem(row, 8, QTableWidgetItem(str(obs['total_exposure'])))
-                self.observations_table.setItem(row, 9, QTableWidgetItem(obs['comments'] or ''))
+                self.observations_table.setItem(row, 2, QTableWidgetItem(obs['start_date']))
+                self.observations_table.setItem(row, 3, QTableWidgetItem(obs['object_name']))
+                self.observations_table.setItem(row, 4, QTableWidgetItem(obs['camera_name']))
+                self.observations_table.setItem(row, 5, QTableWidgetItem(obs['telescope_name']))
+                self.observations_table.setItem(row, 6, QTableWidgetItem(obs['filter_name']))
+                self.observations_table.setItem(row, 7, QTableWidgetItem(str(obs['image_count'])))
+                self.observations_table.setItem(row, 8, QTableWidgetItem(str(obs['exposure_length'])))
+                self.observations_table.setItem(row, 9, QTableWidgetItem(str(obs['total_exposure'])))
+                self.observations_table.setItem(row, 10, QTableWidgetItem(f"{obs['moon_phase']:.1f}%" if obs['moon_phase'] is not None else ""))
+                self.observations_table.setItem(row, 11, QTableWidgetItem(angular_sep))
+                self.observations_table.setItem(row, 12, QTableWidgetItem(obs['comments'] or ''))
             self.observations_table.resizeColumnsToContents()
             self.statusbar.showMessage(f'Loaded {len(observations)} observation(s)')
         except Exception as e:
@@ -196,13 +211,13 @@ class ObservationsTabManager:
         row = self.observations_table.currentRow()
         observation_id = int(self.observations_table.item(row, 0).text())
         current_session_id = self.observations_table.item(row, 1).text()
-        current_object = self.observations_table.item(row, 2).text()
-        current_camera = self.observations_table.item(row, 3).text()
-        current_telescope = self.observations_table.item(row, 4).text()
-        current_filter = self.observations_table.item(row, 5).text()
-        current_image_count = int(self.observations_table.item(row, 6).text())
-        current_exposure = int(self.observations_table.item(row, 7).text())
-        current_comments = self.observations_table.item(row, 9).text()
+        current_object = self.observations_table.item(row, 3).text()
+        current_camera = self.observations_table.item(row, 4).text()
+        current_telescope = self.observations_table.item(row, 5).text()
+        current_filter = self.observations_table.item(row, 6).text()
+        current_image_count = int(self.observations_table.item(row, 7).text())
+        current_exposure = int(self.observations_table.item(row, 8).text())
+        current_comments = self.observations_table.item(row, 12).text()
         
         # Get available options
         sessions = [s['session_id'] for s in self.db.get_all_sessions()]
@@ -242,7 +257,9 @@ class ObservationsTabManager:
 
         row = self.observations_table.currentRow()
         observation_id = int(self.observations_table.item(row, 0).text())
-        object_name = self.observations_table.item(row, 2).text()
+        object_name = self.observations_table.item(row, 3).text()
+        moon_phase = self.observations_table.item(row, 10).text()
+        angular_sep = self.observations_table.item(row, 11).text()
 
         reply = QMessageBox.question(
             self.parent, 'Confirm Deletion',

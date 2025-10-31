@@ -156,6 +156,11 @@
        </column>
        <column>
         <property name="text">
+         <string>Date</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
          <string>Object</string>
         </property>
        </column>
@@ -187,6 +192,16 @@
        <column>
         <property name="text">
          <string>Total Exposure (s)</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Moon Phase</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Angular Separation</string>
         </property>
        </column>
        <column>
