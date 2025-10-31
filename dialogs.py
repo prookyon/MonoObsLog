@@ -295,7 +295,7 @@ class EditObjectDialog(QDialog):
             self.ra_spin.setValue(ra_hours)
             self.dec_spin.setValue(dec)
             from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.information(self, 'Success', f'Found coordinates for {object_name}:\nRA: {ra_hours:.6f}h\nDec: {dec:.6f}°')
+            # QMessageBox.information(self, 'Success', f'Found coordinates for {object_name}:\nRA: {ra_hours:.6f}h\nDec: {dec:.6f}°')
         except Exception as e:
             from PyQt6.QtWidgets import QMessageBox
             QMessageBox.critical(self, 'Lookup Error', str(e))
