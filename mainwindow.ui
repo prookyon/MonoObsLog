@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ObsLog</string>
+   <string>MonoObsLog</string>
   </property>
   <property name="styleSheet">
         <string notr="true">QTableView { selection-background-color: rgb(85, 170, 255)}</string>

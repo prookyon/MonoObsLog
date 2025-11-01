@@ -1,4 +1,6 @@
-# ObsLog - Python Qt6 astrophotography logging application
+<img src="images/icon.png" width="256">
+
+# MonoObsLog - Python Qt6 astrophotography logging application
 
 Qt6-based desktop application for managing astrophotography observations with SQLite database storage.
 
@@ -13,10 +15,12 @@ A lot of the coding is done by using AI coding agents. I don't blindly trust wha
 - **SQLite Storage**: All data persisted in a local SQLite database.
 - **Database backup**: Database is backed up weekly to a subfolder. The size is expected to be small so no automatic cleanup exists.
 
-## Requirements
+## Requirements for running development version
 
 - Python 3.8 or higher
 - PyQt6
+- matplotlib
+- astropy
 
 ## Installation
 
@@ -31,6 +35,11 @@ Run the application:
 ```bash
 python main.py
 ```
+On Windows it might be desirable to create a shortcut with target:
+```bash
+pythonw main.py
+```
+This avoids the console window.
 
 
 ## How to Use
@@ -51,10 +60,10 @@ python main.py
 ## Features by Tab
 
 ### Objects Tab
-- Supports querying location data from Simbad server. Or you can add the coordinates yourself. This is not required but needed for Moon angular distance calculations.
+- Supports querying location data from Simbad server. Or you can add the coordinates yourself. This is not required but needed for Moon angular separation calculations.
 
 ### Sessions Tab
-- Intended usage is to add sessions by the date of the evening before the session. The logic for moon calculations is based on that.
+- Intended usage is to add sessions by the date of the evening before the session. (So if you started imaging after midnight enter the previous day) The logic for moon calculations is based on that. Why? Personal preference 🙂
 
 ### Cameras Tab
 - The technical data is not used at the moment. Maybe in the future.
