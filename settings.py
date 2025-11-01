@@ -9,13 +9,15 @@ DEFAULT_SETTINGS = {
 }
 
 def load_settings():
-    """Load settings from file, return defaults if file doesn't exist."""
+    """Load settings from file, create with defaults if file doesn't exist."""
     if os.path.exists(SETTINGS_FILE):
         try:
             with open(SETTINGS_FILE, 'r') as f:
                 return json.load(f)
         except (json.JSONDecodeError, IOError):
             pass
+    # Create file with defaults if it doesn't exist or failed to load
+    save_settings(DEFAULT_SETTINGS)
     return DEFAULT_SETTINGS.copy()
 
 def save_settings(settings):

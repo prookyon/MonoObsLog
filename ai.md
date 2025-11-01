@@ -98,6 +98,19 @@ The application follows a **modular architecture** with clear separation of conc
 **Usage**: Command-line interface for batch operations on moon data
 **When to modify**: Adding new console utilities or batch processing features
 
+#### `settings.py`
+**Purpose**: Settings storage and management module
+**Key Functions**:
+- `load_settings()`: Loads settings from JSON file, creates with defaults if missing
+- `save_settings(settings)`: Saves settings dictionary to JSON file
+- `get_moon_phase_warning()`: Returns moon phase warning percentage
+- `get_moon_angular_separation_warning()`: Returns angular separation warning degrees
+- `set_moon_phase_warning(value)`: Sets moon phase warning percentage
+- `set_moon_angular_separation_warning(value)`: Sets angular separation warning degrees
+**Dependencies**: json, os
+**Storage**: settings.json file with default values (moon_phase_warning_percent: 75, moon_angular_separation_warning_deg: 60)
+**When to modify**: Adding new configurable settings
+
 ### Dialog Classes
 
 #### `dialogs.py`
@@ -231,7 +244,7 @@ The application follows a **modular architecture** with clear separation of conc
 **Special Features**:
 - QListView filter showing "< All Names >" and unique observed objects
 - Displays session date, moon phase percentage, and angular separation between object and moon
-- Conditional highlighting: pastel red background for moon phase > 75% and angular separation < 60°
+- Conditional highlighting: pastel red background for moon phase > configurable warning % and angular separation < configurable warning °
 
 #### `tab_managers/object_stats_tab.py`
 **Purpose**: Manages Object Stats tab (cumulative exposure statistics by object and filter type)
@@ -259,6 +272,18 @@ The application follows a **modular architecture** with clear separation of conc
 - Displays cumulative exposure values on top of bars
 - Auto-refreshes when tab is selected
 
+#### `tab_managers/settings_tab.py`
+**Purpose**: Manages Settings tab
+**Key Methods**:
+- `setup_tab()`: Loads UI, connects signals, loads current settings
+- `load_settings()`: Populates UI with current settings values
+- `save_settings()`: Saves UI values to settings file and refreshes observations table
+**UI Elements**: Spin boxes for moon phase warning % and angular separation warning °
+**Dependencies**: settings.py module
+**Special Features**:
+- Real-time updates to observations table highlighting when settings change
+- Automatic settings file creation with defaults if missing
+
 ## UI Files
 
 The application uses Qt Designer `.ui` files for layouts:
@@ -272,6 +297,7 @@ The application uses Qt Designer `.ui` files for layouts:
 - `observation_tab.ui`: Observations tab layout
 - `object_stats_tab.ui`: Object Stats tab layout
 - `monthly_stats_tab.ui`: Monthly Stats tab layout
+- `settings_tab.ui`: Settings tab layout
 
 **Note**: UI files are loaded dynamically using `uic.loadUi()`. Widget references are obtained using `findChild()`.
 
