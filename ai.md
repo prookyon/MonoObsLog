@@ -20,8 +20,8 @@ The application follows a **modular architecture** with clear separation of conc
 #### `main.py`
 **Purpose**: Application entry point
 **Key Functions**:
-- `main()`: Initializes QApplication and MainWindow, starts event loop. Checks for database_path setting on startup and shows file selection dialog if not configured.
-**Dependencies**: PyQt6, main_window.MainWindow, settings
+- `main()`: Initializes QApplication and MainWindow, starts event loop. Checks for database_path setting on startup and shows file selection dialog if not configured. Performs automatic weekly backup check before opening main window.
+**Dependencies**: PyQt6, main_window.MainWindow, settings, backup
 **When to modify**: Rarely - only for application-level configuration changes
 
 #### `main_window.py`
@@ -97,6 +97,19 @@ The application follows a **modular architecture** with clear separation of conc
 **Dependencies**: calculations.py, database.py, argparse, datetime
 **Usage**: Command-line interface for batch operations on moon data
 **When to modify**: Adding new console utilities or batch processing features
+
+#### `backup.py`
+**Purpose**: Automatic weekly database backup management
+**Key Functions**:
+- `check_and_create_backup(db_path)`: Main function called at startup to check if backup is needed and create one
+- `create_backup(db_path)`: Creates zipped backup with date-stamped filename
+- `is_backup_needed(db_path)`: Checks if latest backup is older than 7 days
+- `get_latest_backup_info(db_path)`: Retrieves most recent backup filename and date
+**Dependencies**: os, zipfile, datetime
+**Backup Location**: Creates 'ObsLogBackup' subfolder next to database file
+**Backup Format**: Zipped files named as `observations_backup_YYYY-MM-DD.zip`
+**Backup Interval**: 7 days between backups
+**When to modify**: Changing backup frequency, location, or naming conventions
 
 #### `settings.py`
 **Purpose**: Settings storage and management module

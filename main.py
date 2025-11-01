@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import QApplication, QFileDialog, QMessageBox
 
 from main_window import MainWindow
 import settings
+import backup
 
 
 def main():
@@ -53,6 +54,15 @@ def main():
                 f"Failed to create database directory: {str(e)}"
             )
             sys.exit(1)
+    
+    # Check and create backup if needed
+    try:
+        backup_created, backup_message = backup.check_and_create_backup(db_path)
+        if backup_created:
+            print(f"Database backup: {backup_message}")
+    except Exception as e:
+        # Don't prevent app startup if backup fails, just log it
+        print(f"Warning: Backup check failed: {str(e)}")
     
     # Create and show main window with the database path
     window = MainWindow(db_path)
