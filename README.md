@@ -10,7 +10,8 @@ A lot of the coding is done by using AI coding agents. I don't blindly trust wha
 
 - **Object statistics**: Per filter-type exposure totals for each object.
 - **Monthly statisctis**: Cumulative observation hours per month.
-- **SQLite Storage**: All data persisted in a local SQLite database. I personally make backups of the database file.
+- **SQLite Storage**: All data persisted in a local SQLite database.
+- **Database backup**: Database is backed up weekly to a subfolder. The size is expected to be small so no automatic cleanup exists.
 
 ## Requirements
 
