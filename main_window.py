@@ -15,6 +15,7 @@ from tab_managers import (
     ObservationsTabManager,
     ObjectStatsTabManager,
     MonthlyStatsTabManager,
+    SettingsTabManager,
 )
 
 
@@ -42,6 +43,7 @@ class MainWindow(QMainWindow):
         self.observations_tab = ObservationsTabManager(self, self.db, self.tabWidget, self.statusbar)
         self.object_stats_tab = ObjectStatsTabManager(self, self.db, self.tabWidget, self.statusbar)
         self.monthly_stats_tab = MonthlyStatsTabManager(self, self.db, self.tabWidget, self.statusbar)
+        self.settings_tab = SettingsTabManager(self, self.db, self.tabWidget, self.statusbar)
 
         # Connect tab change signal to update observation combos when switching to Observations tab
         self.tabWidget.currentChanged.connect(self.on_tab_changed)

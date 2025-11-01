@@ -8,6 +8,7 @@ from PyQt6 import uic
 
 from dialogs import EditObservationDialog
 from calculations import calculate_angular_separation
+import settings
 
 
 class ObservationsTabManager:
@@ -162,7 +163,8 @@ class ObservationsTabManager:
 
                 # Moon Phase column with conditional highlighting
                 moon_phase_item = QTableWidgetItem(f"{obs['moon_phase']:.1f}%" if obs['moon_phase'] is not None else "")
-                if obs['moon_phase'] is not None and obs['moon_phase'] > 75:
+                moon_phase_warning = settings.get_moon_phase_warning()
+                if obs['moon_phase'] is not None and obs['moon_phase'] > moon_phase_warning:
                     # For pastel: high value, low-to-medium saturation
                     saturation = 40  # 0-100, lower = more pastel
                     value_hsv = 95   # 0-100, brightness
@@ -172,7 +174,8 @@ class ObservationsTabManager:
 
                 # Angular Separation column with conditional highlighting
                 angular_sep_item = QTableWidgetItem(angular_sep)
-                if angular_sep_value is not None and angular_sep_value < 60:
+                angular_sep_warning = settings.get_moon_angular_separation_warning()
+                if angular_sep_value is not None and angular_sep_value < angular_sep_warning:
                     # For pastel: high value, low-to-medium saturation
                     saturation = 40  # 0-100, lower = more pastel
                     value_hsv = 95   # 0-100, brightness

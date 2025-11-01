@@ -1,0 +1,47 @@
+import json
+import os
+
+SETTINGS_FILE = 'settings.json'
+
+DEFAULT_SETTINGS = {
+    'moon_phase_warning_percent': 75,
+    'moon_angular_separation_warning_deg': 60
+}
+
+def load_settings():
+    """Load settings from file, return defaults if file doesn't exist."""
+    if os.path.exists(SETTINGS_FILE):
+        try:
+            with open(SETTINGS_FILE, 'r') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError):
+            pass
+    return DEFAULT_SETTINGS.copy()
+
+def save_settings(settings):
+    """Save settings to file."""
+    try:
+        with open(SETTINGS_FILE, 'w') as f:
+            json.dump(settings, f, indent=4)
+    except IOError:
+        pass
+
+def get_moon_phase_warning():
+    """Get moon phase warning percentage."""
+    return load_settings()['moon_phase_warning_percent']
+
+def get_moon_angular_separation_warning():
+    """Get moon angular separation warning degrees."""
+    return load_settings()['moon_angular_separation_warning_deg']
+
+def set_moon_phase_warning(value):
+    """Set moon phase warning percentage."""
+    settings = load_settings()
+    settings['moon_phase_warning_percent'] = value
+    save_settings(settings)
+
+def set_moon_angular_separation_warning(value):
+    """Set moon angular separation warning degrees."""
+    settings = load_settings()
+    settings['moon_angular_separation_warning_deg'] = value
+    save_settings(settings)
