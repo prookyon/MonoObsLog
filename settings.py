@@ -6,6 +6,7 @@ SETTINGS_FILE = 'settings.json'
 DEFAULT_SETTINGS = {
     'moon_phase_warning_percent': 75,
     'moon_angular_separation_warning_deg': 60
+    # Note: database_path intentionally has no default - user must select on first run
 }
 
 def load_settings():
@@ -46,4 +47,19 @@ def set_moon_angular_separation_warning(value):
     """Set moon angular separation warning degrees."""
     settings = load_settings()
     settings['moon_angular_separation_warning_deg'] = value
+    save_settings(settings)
+
+def get_database_path():
+    """Get database path.
+    
+    Returns:
+        Database path if set, None otherwise
+    """
+    settings = load_settings()
+    return settings.get('database_path', None)
+
+def set_database_path(path):
+    """Set database path."""
+    settings = load_settings()
+    settings['database_path'] = path
     save_settings(settings)

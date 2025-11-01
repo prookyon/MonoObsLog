@@ -6,15 +6,56 @@ including objects, cameras, telescopes, filters, and observations.
 """
 
 import sys
-from PyQt6.QtWidgets import QApplication
+import os
+from PyQt6.QtWidgets import QApplication, QFileDialog, QMessageBox
 
 from main_window import MainWindow
+import settings
 
 
 def main():
     """Main entry point for the application."""
     app = QApplication(sys.argv)
-    window = MainWindow()
+    
+    # Check if database path is configured
+    db_path = settings.get_database_path()
+    
+    if db_path is None:
+        # Show file selection dialog to let user select or create database
+        db_path, _ = QFileDialog.getSaveFileName(
+            None,
+            "Select Database Location",
+            os.path.join(os.path.expanduser("~"), "observations.db"),
+            "Database Files (*.db);;All Files (*)"
+        )
+        
+        # If user cancelled the dialog, exit the application
+        if not db_path:
+            QMessageBox.warning(
+                None,
+                "Database Required",
+                "A database location must be selected to run the application."
+            )
+            sys.exit(0)
+        
+        # Save the selected database path to settings
+        settings.set_database_path(db_path)
+    
+    # Verify the database path exists or can be created
+    db_dir = os.path.dirname(db_path)
+    if db_dir and not os.path.exists(db_dir):
+        try:
+            os.makedirs(db_dir, exist_ok=True)
+        except Exception as e:
+            QMessageBox.critical(
+                None,
+                "Error",
+                f"Failed to create database directory: {str(e)}"
+            )
+            sys.exit(1)
+    
+    # Create and show main window with the database path
+    window = MainWindow(db_path)
     window.show()
     sys.exit(app.exec())
 

@@ -22,7 +22,7 @@ from tab_managers import (
 class MainWindow(QMainWindow):
     """Main application window."""
     
-    def __init__(self):
+    def __init__(self, db_path: str):
         super().__init__()
         
         # Load the main UI file
@@ -30,8 +30,8 @@ class MainWindow(QMainWindow):
         ui_path = os.path.join(base_dir, 'mainwindow.ui')
         uic.loadUi(ui_path, self)
         
-        # Initialize database
-        self.db = Database()
+        # Initialize database with the specified path
+        self.db = Database(db_path)
         
         # Initialize tab managers
         self.objects_tab = ObjectsTabManager(self, self.db, self.tabWidget, self.statusbar)

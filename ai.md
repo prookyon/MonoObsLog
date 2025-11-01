@@ -20,24 +20,24 @@ The application follows a **modular architecture** with clear separation of conc
 #### `main.py`
 **Purpose**: Application entry point
 **Key Functions**:
-- `main()`: Initializes QApplication and MainWindow, starts event loop
-**Dependencies**: PyQt6, main_window.MainWindow
+- `main()`: Initializes QApplication and MainWindow, starts event loop. Checks for database_path setting on startup and shows file selection dialog if not configured.
+**Dependencies**: PyQt6, main_window.MainWindow, settings
 **When to modify**: Rarely - only for application-level configuration changes
 
 #### `main_window.py`
 **Purpose**: Main application window coordinator
 **Key Responsibilities**:
 - Loads main UI file (`mainwindow.ui`)
-- Initializes database connection
+- Initializes database connection with user-specified path
 - Creates and manages tab manager instances
 - Handles tab change events
 - Manages application lifecycle (close event)
 **Key Methods**:
-- `__init__()`: Sets up window, database, and tab managers
+- `__init__(db_path)`: Sets up window, database with specified path, and tab managers
 - `on_tab_changed(index)`: Updates UI when switching tabs
 - `closeEvent(event)`: Cleans up database connection on exit
 **Dependencies**: PyQt6, database.Database, all tab managers
-**When to modify**: 
+**When to modify**:
 - Adding new tabs (create manager instance)
 - Adding global application behavior
 - Modifying tab change logic
@@ -107,8 +107,10 @@ The application follows a **modular architecture** with clear separation of conc
 - `get_moon_angular_separation_warning()`: Returns angular separation warning degrees
 - `set_moon_phase_warning(value)`: Sets moon phase warning percentage
 - `set_moon_angular_separation_warning(value)`: Sets angular separation warning degrees
+- `get_database_path()`: Returns database path if set, None otherwise
+- `set_database_path(path)`: Sets database path
 **Dependencies**: json, os
-**Storage**: settings.json file with default values (moon_phase_warning_percent: 75, moon_angular_separation_warning_deg: 60)
+**Storage**: settings.json file with default values (moon_phase_warning_percent: 75, moon_angular_separation_warning_deg: 60). database_path has no default - user must select on first run.
 **When to modify**: Adding new configurable settings
 
 ### Dialog Classes
