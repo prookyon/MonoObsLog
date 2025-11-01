@@ -123,7 +123,7 @@ class Database:
         Returns:
             List of dictionaries containing object data (id, name, ra, dec)
         """
-        self.cursor.execute("SELECT id, name, ra, dec FROM objects ORDER BY id")
+        self.cursor.execute("SELECT id, name, ra, dec FROM objects ORDER BY name")
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
     
@@ -175,7 +175,7 @@ class Database:
     
     def get_all_sessions(self) -> List[Dict]:
         """Get all sessions from the database."""
-        self.cursor.execute("SELECT id, session_id, start_date, moon_phase, moon_ra, moon_dec FROM sessions ORDER BY id")
+        self.cursor.execute("SELECT id, session_id, start_date, moon_phase, moon_ra, moon_dec FROM sessions ORDER BY id DESC")
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
     
@@ -456,7 +456,7 @@ class Database:
             FROM observations o
             JOIN sessions s ON o.session_id = s.session_id
             JOIN objects obj ON o.object_name = obj.name
-            ORDER BY o.id
+            ORDER BY o.id DESC
         """)
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
@@ -506,12 +506,12 @@ class Database:
         """Get cumulative exposure statistics grouped by month.
 
         Returns:
-            List of dictionaries containing year_month and total_exposure
+            List of dictionaries containing year_month and total_exposure in hours
         """
         self.cursor.execute("""
             SELECT
                 strftime('%Y-%m', s.start_date) as year_month,
-                SUM(o.total_exposure) as total_exposure
+                SUM(o.total_exposure)/3600 as total_exposure
             FROM observations o
             JOIN sessions s ON o.session_id = s.session_id
             GROUP BY strftime('%Y-%m', s.start_date)

@@ -80,7 +80,7 @@ class MonthlyStatsTabManager:
             
             # Customize the chart
             ax.set_xlabel('Month', fontsize=12, fontweight='bold')
-            ax.set_ylabel('Total Exposure (seconds)', fontsize=12, fontweight='bold')
+            ax.set_ylabel('Total Exposure (hours)', fontsize=12, fontweight='bold')
             ax.set_title('Monthly Cumulative Exposure Statistics', fontsize=14, fontweight='bold', pad=20)
             
             # Set x-axis labels
@@ -95,8 +95,8 @@ class MonthlyStatsTabManager:
             for i, (bar, value) in enumerate(zip(bars, exposures)):
                 height = bar.get_height()
                 ax.text(bar.get_x() + bar.get_width()/2., height,
-                       f'{int(value):,}s\n({value/3600:.1f}h)',
-                       ha='center', va='center', fontsize=9)
+                       f'{value:.1f}h',
+                       ha='center', va='bottom', fontsize=9)
             
             # Adjust layout to prevent label cutoff
             self.figure.tight_layout()
