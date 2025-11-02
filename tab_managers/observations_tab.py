@@ -2,7 +2,7 @@
 
 import os
 import datetime
-from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QFileDialog
+from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QFileDialog, QToolButton, QMenu
 from PyQt6.QtCore import QStringListModel
 from PyQt6.QtGui import QColor
 from PyQt6 import uic
@@ -65,10 +65,17 @@ class ObservationsTabManager:
         self.filter_model = QStringListModel()
         self.observation_filter_list_view.setModel(self.filter_model)
         
-        # Connect signals
+        # Setup export button with popup menu
+        self.export_menu = QMenu(self.export_observation_button)
+        self.export_action = self.export_menu.addAction("Export to Excel")
+        self.export_action.triggered.connect(self.export_observations_to_excel)
+        self.export_html_action = self.export_menu.addAction("Export to HTML")
+        self.export_html_action.triggered.connect(self.export_observations_to_html)
+        self.export_observation_button.setMenu(self.export_menu)
+        
+        # Connect other signals
         self.add_observation_button.clicked.connect(self.add_observation)
         self.edit_observation_button.clicked.connect(self.edit_observation)
-        self.export_observation_button.clicked.connect(self.export_observations_to_excel)
         self.delete_observation_button.clicked.connect(self.delete_observation)
         self.observation_filter_list_view.selectionModel().currentChanged.connect(self.filter_observations)
         
@@ -438,6 +445,113 @@ class ObservationsTabManager:
 
             # Save the workbook
             wb.save(file_path)
+            self.statusbar.showMessage(f'Observations exported to {file_path}')
+            QMessageBox.information(self.parent, 'Success', f'Observations exported successfully to:\n{file_path}')
+
+        except Exception as e:
+            QMessageBox.critical(self.parent, 'Error', f'Failed to export observations: {str(e)}')
+
+    def export_observations_to_html(self):
+        """Export observations to HTML file with same columns as visible in the table."""
+        try:
+            # Get current observations with same filtering as table
+            current_filter = self.get_current_filter()
+            if current_filter == '< All Names >' or current_filter is None:
+                observations = self.db.get_all_observations()
+            else:
+                observations = [obs for obs in self.db.get_all_observations() if obs['object_name'] == current_filter]
+
+            if not observations:
+                QMessageBox.information(self.parent, 'Information', 'No observations to export.')
+                return
+
+            # Create a proper filename based on current date and filter
+            current_date = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            if current_filter and current_filter != '< All Names >':
+                safe_filter = "".join(c for c in current_filter if c.isalnum() or c in (' ', '-', '_')).rstrip()
+                default_filename = f"observations_{safe_filter}_{current_date}.html"
+            else:
+                default_filename = f"observations_all_{current_date}.html"
+            
+            file_path, _ = QFileDialog.getSaveFileName(
+                self.parent,
+                'Save Observations HTML File',
+                default_filename,
+                'HTML Files (*.html)'
+            )
+
+            if not file_path:
+                return
+
+            # Load HTML template
+            base_dir = os.path.dirname(os.path.dirname(__file__))
+            template_path = os.path.join(base_dir, 'templates', 'observations_export.html')
+            
+            try:
+                with open(template_path, 'r', encoding='utf-8') as f:
+                    template_content = f.read()
+            except FileNotFoundError:
+                QMessageBox.critical(self.parent, 'Error',
+                                   'HTML template file not found. Please ensure templates/observations_export.html exists.')
+                return
+
+            # Generate table rows
+            table_rows = ""
+            for obs in observations:
+                # Calculate angular separation same way as in load_observations
+                angular_sep = ""
+                angular_sep_value = None
+                moon_warning_class = ""
+                angular_warning_class = ""
+                
+                if obs['ra'] is not None and obs['dec'] is not None and obs['moon_ra'] is not None and obs['moon_dec'] is not None:
+                    try:
+                        angular_sep_value = calculate_angular_separation(obs['ra']*15.0, obs['dec'], obs['moon_ra'], obs['moon_dec'])
+                        angular_sep = f"{angular_sep_value:.0f}°"
+                    except Exception:
+                        angular_sep = "N/A"
+
+                # Check for moon phase warning
+                moon_phase_warning = settings.get_moon_phase_warning()
+                if obs['moon_phase'] is not None and obs['moon_phase'] > moon_phase_warning:
+                    moon_warning_class = "moon-warning"
+
+                # Check for angular separation warning
+                angular_sep_warning = settings.get_moon_angular_separation_warning()
+                if angular_sep_value is not None and angular_sep_value < angular_sep_warning:
+                    angular_warning_class = "angular-warning"
+
+                table_rows += f"""                <tr>
+                    <td>{obs['session_id']}</td>
+                    <td>{obs['start_date']}</td>
+                    <td>{obs['object_name']}</td>
+                    <td>{obs['camera_name']}</td>
+                    <td>{obs['telescope_name']}</td>
+                    <td>{obs['filter_name']}</td>
+                    <td style="text-align: center;">{obs['image_count']}</td>
+                    <td style="text-align: center;">{obs['exposure_length']}</td>
+                    <td style="text-align: center;">{obs['total_exposure']}</td>
+                    <td class="{moon_warning_class}" style="text-align: center;">{f"{obs['moon_phase']:.1f}%" if obs['moon_phase'] is not None else ""}</td>
+                    <td class="{angular_warning_class}" style="text-align: center;">{angular_sep}</td>
+                    <td>{obs['comments'] or ''}</td>
+                </tr>
+"""
+
+            # Replace placeholders in template
+            filter_name = current_filter if current_filter and current_filter != '< All Names >' else 'All Objects'
+            export_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            completion_date = datetime.datetime.now().strftime("%Y-%m-%d at %H:%M:%S")
+            
+            html_content = template_content.replace('{{filter_name}}', filter_name)
+            html_content = html_content.replace('{{export_date}}', export_date)
+            html_content = html_content.replace('{{total_records}}', str(len(observations)))
+            html_content = html_content.replace('{{table_rows}}', table_rows)
+            html_content = html_content.replace('{{completion_date}}', completion_date)
+
+            # Write HTML file
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+            
             self.statusbar.showMessage(f'Observations exported to {file_path}')
             QMessageBox.information(self.parent, 'Success', f'Observations exported successfully to:\n{file_path}')
 

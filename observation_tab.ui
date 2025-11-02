@@ -236,9 +236,18 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="exportObservationButton">
+      <widget class="QToolButton" name="exportObservationButton">
+       <property name="styleSheet">
+        <string notr="true">padding-right: 20px;</string>
+       </property>
        <property name="text">
-        <string>Export to Excel</string>
+        <string>Export...</string>
+       </property>
+       <property name="popupMode">
+        <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonStyle::ToolButtonTextOnly</enum>
        </property>
       </widget>
      </item>
