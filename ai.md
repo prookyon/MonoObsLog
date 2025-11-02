@@ -253,8 +253,9 @@ The application follows a **modular architecture** with clear separation of conc
 - `edit_observation()`: Opens EditObservationDialog for editing
 - `delete_observation()`: Deletes observation with confirmation
 - `export_observations_to_excel()`: Exports current filtered observations to Excel file with same columns as visible in table
-**UI Elements**: Table, combo boxes for session/object/camera/telescope/filter, spin boxes for counts/exposure, comments input, QListView for object filtering, "Export to Excel" button
-**Dependencies**: Requires data in all other tabs (sessions, objects, cameras, telescopes, filters), openpyxl for Excel export
+- `export_observations_to_html()`: Exports current filtered observations to HTML file with same columns as table using template system
+**UI Elements**: Table, combo boxes for session/object/camera/telescope/filter, spin boxes for counts/exposure, comments input, QListView for object filtering, "Export" button with Excel/HTML menu
+**Dependencies**: Requires data in all other tabs (sessions, objects, cameras, telescopes, filters), openpyxl for Excel export, template file for HTML export
 **Validation**: Ensures all required fields are selected and numeric values are non-zero
 **Calculated Field**: Total exposure = image_count × exposure_length (calculated in database)
 **Special Features**:
@@ -262,6 +263,7 @@ The application follows a **modular architecture** with clear separation of conc
 - Displays session date, moon phase percentage, and angular separation between object and moon
 - Conditional highlighting: pastel red background for moon phase > configurable warning % and angular separation < configurable warning °
 - **Excel Export**: "Export to Excel" button exports current filtered observations with same columns as table, includes formatted headers, auto-sized columns, and date-stamped filenames
+- **HTML Export**: "Export to HTML" action exports observations using template file with professional styling, warning highlighting, and responsive design
 
 #### `tab_managers/object_stats_tab.py`
 **Purpose**: Manages Object Stats tab (cumulative exposure statistics by object and filter type)
@@ -315,6 +317,12 @@ The application uses Qt Designer `.ui` files for layouts:
 - `object_stats_tab.ui`: Object Stats tab layout
 - `monthly_stats_tab.ui`: Monthly Stats tab layout
 - `settings_tab.ui`: Settings tab layout
+
+### Template Files
+
+- `templates/observations_export.html`: HTML template for observations export with CSS styling and placeholders for dynamic content
+  - Placeholders: `{{filter_name}}`, `{{export_date}}`, `{{total_records}}`, `{{table_rows}}`, `{{completion_date}}`
+  - Features: Professional styling, conditional highlighting, responsive design
 
 **Note**: UI files are loaded dynamically using `uic.loadUi()`. Widget references are obtained using `findChild()`.
 
@@ -413,6 +421,7 @@ All `.ui` files are loaded using relative paths to ensure the application works 
 - **openpyxl**: Excel file export functionality (Observations tab)
 - **SQLite3**: Database (built-in Python)
 - **Python 3.x**: Runtime environment
+- **HTML Templates**: HTML export functionality using template system
 
 ## Testing
 
