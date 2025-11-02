@@ -181,7 +181,7 @@ class ObservationsTabManager:
                 self.observations_table.setItem(row, 9, NumericTableWidgetItem(obs['total_exposure']))
 
                 # Moon Illumination column with conditional highlighting
-                moon_illumination_item = QTableWidgetItem(f"{obs['moon_illumination']:.1f}%" if obs['moon_illumination'] is not None else "")
+                moon_illumination_item = QTableWidgetItem(f"{obs['moon_illumination']:.0f}%" if obs['moon_illumination'] is not None else "")
                 moon_illumination_warning = settings.get_moon_illumination_warning()
                 if obs['moon_illumination'] is not None and obs['moon_illumination'] > moon_illumination_warning:
                     # For pastel: high value, low-to-medium saturation

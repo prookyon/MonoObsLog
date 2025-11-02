@@ -5,6 +5,8 @@ from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QInputDialog
 from PyQt6 import uic
 from dialogs import EditObjectDialog
 
+from utilities import NumericTableWidgetItem
+
 
 class ObjectsTabManager:
     """Manages the Objects tab functionality."""
@@ -66,11 +68,11 @@ class ObjectsTabManager:
                 
                 # Display RA coordinate in hours (or empty if None)
                 ra_text = f"{obj['ra']:.6f}h" if obj['ra'] is not None else ""
-                self.objects_table.setItem(row, 2, QTableWidgetItem(ra_text))
+                self.objects_table.setItem(row, 2, NumericTableWidgetItem(ra_text))
                 
                 # Display Dec coordinate (or empty if None)
                 dec_text = f"{obj['dec']:.6f}°" if obj['dec'] is not None else ""
-                self.objects_table.setItem(row, 3, QTableWidgetItem(dec_text))
+                self.objects_table.setItem(row, 3, NumericTableWidgetItem(dec_text))
             
             self.statusbar.showMessage(f'Loaded {len(objects)} object(s)')
         except Exception as e:
