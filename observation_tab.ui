@@ -148,8 +148,17 @@
        <property name="sortingEnabled">
         <bool>true</bool>
        </property>
+       <attribute name="horizontalHeaderMinimumSectionSize">
+        <number>20</number>
+       </attribute>
+       <attribute name="horizontalHeaderDefaultSectionSize">
+        <number>70</number>
+       </attribute>
        <attribute name="horizontalHeaderStretchLastSection">
         <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
        </attribute>
        <column>
         <property name="text">
@@ -198,17 +207,20 @@
        </column>
        <column>
         <property name="text">
-         <string>Total Exposure (s)</string>
+         <string>Total
+Exposure (s)</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>Moon Illumination</string>
+         <string>Moon
+Illumination</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>Angular Separation</string>
+         <string>Angular
+Separation</string>
         </property>
        </column>
        <column>

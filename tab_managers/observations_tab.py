@@ -2,7 +2,7 @@
 
 import os
 import datetime
-from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QFileDialog, QToolButton, QMenu
+from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QFileDialog, QToolButton, QMenu, QTableWidget
 from PyQt6.QtCore import QStringListModel
 from PyQt6.QtGui import QColor
 from PyQt6 import uic
@@ -49,7 +49,7 @@ class ObservationsTabManager:
         self.tab_widget.addTab(observation_widget, "Observations")
         
         # Store references
-        self.observations_table = observation_widget.findChild(QWidget, "observationsTable")
+        self.observations_table = observation_widget.findChild(QTableWidget, "observationsTable")
         self.observation_filter_list_view = observation_widget.findChild(QWidget, "observationFilterListView")
         self.session_id_combo_box = observation_widget.findChild(QWidget, "sessionIdComboBox")
         self.object_combo_box = observation_widget.findChild(QWidget, "objectComboBox")

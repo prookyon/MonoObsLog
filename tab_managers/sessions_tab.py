@@ -75,7 +75,7 @@ class SessionsTabManager:
                 self.sessions_table.setItem(row, 0, QTableWidgetItem(str(session['id'])))
                 self.sessions_table.setItem(row, 1, QTableWidgetItem(session['session_id']))
                 self.sessions_table.setItem(row, 2, QTableWidgetItem(session['start_date']))
-                self.sessions_table.setItem(row, 3, NumericTableWidgetItem(f"{session['moon_illumination']:.2f}%" if session['moon_illumination'] is not None else ""))
+                self.sessions_table.setItem(row, 3, NumericTableWidgetItem(f"{session['moon_illumination']:.0f}%" if session['moon_illumination'] is not None else ""))
                 self.sessions_table.setItem(row, 4, NumericTableWidgetItem(f"{session['moon_ra']:.2f}°" if session['moon_ra'] is not None else ""))
                 self.sessions_table.setItem(row, 5, NumericTableWidgetItem(f"{session['moon_dec']:.2f}°" if session['moon_dec'] is not None else ""))
 
