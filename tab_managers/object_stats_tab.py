@@ -5,6 +5,8 @@ from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6.QtGui import QColor
 from PyQt6 import uic
 
+from utilities import NumericTableWidgetItem
+
 
 class ObjectStatsTabManager:
     """Manages the Object Stats tab functionality."""
@@ -94,11 +96,11 @@ class ObjectStatsTabManager:
                         self.stats_table.setItem(
                             row_idx, 
                             col_idx + 1, 
-                            QTableWidgetItem(str(exposure))
+                            NumericTableWidgetItem(exposure)
                     )
                 
                 # Total column
-                total_item = QTableWidgetItem(str(row_total))
+                total_item = NumericTableWidgetItem(row_total)
                 self.stats_table.setItem(
                     row_idx,
                     len(filter_types) + 1,

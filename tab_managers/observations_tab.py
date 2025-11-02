@@ -9,7 +9,10 @@ from PyQt6 import uic
 
 from dialogs import EditObservationDialog
 from calculations import calculate_angular_separation
+from utilities import NumericTableWidgetItem
 import settings
+
+
 try:
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment
@@ -173,9 +176,9 @@ class ObservationsTabManager:
                 self.observations_table.setItem(row, 4, QTableWidgetItem(obs['camera_name']))
                 self.observations_table.setItem(row, 5, QTableWidgetItem(obs['telescope_name']))
                 self.observations_table.setItem(row, 6, QTableWidgetItem(obs['filter_name']))
-                self.observations_table.setItem(row, 7, QTableWidgetItem(str(obs['image_count'])))
-                self.observations_table.setItem(row, 8, QTableWidgetItem(str(obs['exposure_length'])))
-                self.observations_table.setItem(row, 9, QTableWidgetItem(str(obs['total_exposure'])))
+                self.observations_table.setItem(row, 7, NumericTableWidgetItem(obs['image_count']))
+                self.observations_table.setItem(row, 8, NumericTableWidgetItem(obs['exposure_length']))
+                self.observations_table.setItem(row, 9, NumericTableWidgetItem(obs['total_exposure']))
 
                 # Moon Illumination column with conditional highlighting
                 moon_illumination_item = QTableWidgetItem(f"{obs['moon_illumination']:.1f}%" if obs['moon_illumination'] is not None else "")

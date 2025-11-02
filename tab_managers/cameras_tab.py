@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6 import uic
 
 from dialogs import EditCameraDialog
+from utilities import NumericTableWidgetItem
 
 
 class CamerasTabManager:
@@ -71,9 +72,9 @@ class CamerasTabManager:
                 self.cameras_table.setItem(row, 0, QTableWidgetItem(str(camera['id'])))
                 self.cameras_table.setItem(row, 1, QTableWidgetItem(camera['name']))
                 self.cameras_table.setItem(row, 2, QTableWidgetItem(camera['sensor']))
-                self.cameras_table.setItem(row, 3, QTableWidgetItem(str(camera['pixel_size'])))
-                self.cameras_table.setItem(row, 4, QTableWidgetItem(str(camera['width'])))
-                self.cameras_table.setItem(row, 5, QTableWidgetItem(str(camera['height'])))
+                self.cameras_table.setItem(row, 3, NumericTableWidgetItem(camera['pixel_size']))
+                self.cameras_table.setItem(row, 4, NumericTableWidgetItem(camera['width']))
+                self.cameras_table.setItem(row, 5, NumericTableWidgetItem(camera['height']))
             
             self.statusbar.showMessage(f'Loaded {len(cameras)} camera(s)')
         except Exception as e:

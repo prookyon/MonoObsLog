@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6 import uic
 
 from dialogs import EditTelescopeDialog
+from utilities import NumericTableWidgetItem
 
 
 class TelescopesTabManager:
@@ -72,9 +73,9 @@ class TelescopesTabManager:
             for row, telescope in enumerate(telescopes):
                 self.telescopes_table.setItem(row, 0, QTableWidgetItem(str(telescope['id'])))
                 self.telescopes_table.setItem(row, 1, QTableWidgetItem(telescope['name']))
-                self.telescopes_table.setItem(row, 2, QTableWidgetItem(str(telescope['aperture'])))
-                self.telescopes_table.setItem(row, 3, QTableWidgetItem(str(telescope['f_ratio'])))
-                self.telescopes_table.setItem(row, 4, QTableWidgetItem(str(telescope['focal_length'])))
+                self.telescopes_table.setItem(row, 2, NumericTableWidgetItem(telescope['aperture']))
+                self.telescopes_table.setItem(row, 3, NumericTableWidgetItem(telescope['f_ratio']))
+                self.telescopes_table.setItem(row, 4, NumericTableWidgetItem(telescope['focal_length']))
             
             self.statusbar.showMessage(f'Loaded {len(telescopes)} telescope(s)')
         except Exception as e:
