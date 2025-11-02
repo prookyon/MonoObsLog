@@ -12,6 +12,8 @@ A lot of the coding is done by using AI coding agents. I don't blindly trust wha
 
 - **Object statistics**: Per filter-type exposure totals for each object.
 - **Monthly statisctis**: Cumulative observation hours per month.
+- **Moon data**: Illumination percentages and angular separation calculated for each observation (not intended to be super precise - just there to get a rough overview of potential data quality issues)
+- **Excel Export**: Observations can be exported as an Excel file.
 - **SQLite Storage**: All data persisted in a local SQLite database.
 - **Database backup**: Database is backed up weekly to a subfolder. The size is expected to be small so no automatic cleanup exists.
 

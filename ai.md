@@ -252,14 +252,16 @@ The application follows a **modular architecture** with clear separation of conc
 - `add_observation()`: Adds new observation record
 - `edit_observation()`: Opens EditObservationDialog for editing
 - `delete_observation()`: Deletes observation with confirmation
-**UI Elements**: Table, combo boxes for session/object/camera/telescope/filter, spin boxes for counts/exposure, comments input, QListView for object filtering
-**Dependencies**: Requires data in all other tabs (sessions, objects, cameras, telescopes, filters)
+- `export_observations_to_excel()`: Exports current filtered observations to Excel file with same columns as visible in table
+**UI Elements**: Table, combo boxes for session/object/camera/telescope/filter, spin boxes for counts/exposure, comments input, QListView for object filtering, "Export to Excel" button
+**Dependencies**: Requires data in all other tabs (sessions, objects, cameras, telescopes, filters), openpyxl for Excel export
 **Validation**: Ensures all required fields are selected and numeric values are non-zero
 **Calculated Field**: Total exposure = image_count × exposure_length (calculated in database)
 **Special Features**:
 - QListView filter showing "< All Names >" and unique observed objects
 - Displays session date, moon phase percentage, and angular separation between object and moon
 - Conditional highlighting: pastel red background for moon phase > configurable warning % and angular separation < configurable warning °
+- **Excel Export**: "Export to Excel" button exports current filtered observations with same columns as table, includes formatted headers, auto-sized columns, and date-stamped filenames
 
 #### `tab_managers/object_stats_tab.py`
 **Purpose**: Manages Object Stats tab (cumulative exposure statistics by object and filter type)
@@ -408,6 +410,7 @@ All `.ui` files are loaded using relative paths to ensure the application works 
 - **PyQt6**: GUI framework
 - **matplotlib**: Chart visualization (Monthly Stats tab)
 - **astropy**: Astronomical calculations (Moon data computation)
+- **openpyxl**: Excel file export functionality (Observations tab)
 - **SQLite3**: Database (built-in Python)
 - **Python 3.x**: Runtime environment
 

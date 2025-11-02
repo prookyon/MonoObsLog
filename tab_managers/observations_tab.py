@@ -1,7 +1,8 @@
 """Observations tab manager for the observation log application."""
 
 import os
-from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
+import datetime
+from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QFileDialog
 from PyQt6.QtCore import QStringListModel
 from PyQt6.QtGui import QColor
 from PyQt6 import uic
@@ -9,6 +10,12 @@ from PyQt6 import uic
 from dialogs import EditObservationDialog
 from calculations import calculate_angular_separation
 import settings
+try:
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    OPENPYXL_AVAILABLE = True
+except ImportError:
+    OPENPYXL_AVAILABLE = False
 
 
 class ObservationsTabManager:
@@ -51,6 +58,7 @@ class ObservationsTabManager:
         self.comments_line_edit = observation_widget.findChild(QWidget, "commentsLineEdit")
         self.add_observation_button = observation_widget.findChild(QWidget, "addObservationButton")
         self.edit_observation_button = observation_widget.findChild(QWidget, "editObservationButton")
+        self.export_observation_button = observation_widget.findChild(QWidget, "exportObservationButton")
         self.delete_observation_button = observation_widget.findChild(QWidget, "deleteObservationButton")
 
         # Setup filter list view
@@ -60,6 +68,7 @@ class ObservationsTabManager:
         # Connect signals
         self.add_observation_button.clicked.connect(self.add_observation)
         self.edit_observation_button.clicked.connect(self.edit_observation)
+        self.export_observation_button.clicked.connect(self.export_observations_to_excel)
         self.delete_observation_button.clicked.connect(self.delete_observation)
         self.observation_filter_list_view.selectionModel().currentChanged.connect(self.filter_observations)
         
@@ -316,3 +325,121 @@ class ObservationsTabManager:
         if current_index.isValid():
             return self.filter_model.data(current_index, 0)
         return '< All Names >'
+
+    def export_observations_to_excel(self):
+        """Export observations to Excel file with same columns as visible in the table."""
+        if not OPENPYXL_AVAILABLE:
+            QMessageBox.critical(self.parent, 'Error',
+                               'openpyxl is required for Excel export. Please install it with: pip install openpyxl')
+            return
+        
+        try:
+            # Check if openpyxl is available
+            if not OPENPYXL_AVAILABLE:
+                QMessageBox.critical(self.parent, 'Error',
+                                   'openpyxl library not found. Please install it first.')
+                return
+
+            # Get current observations with same filtering as table
+            current_filter = self.get_current_filter()
+            if current_filter == '< All Names >' or current_filter is None:
+                observations = self.db.get_all_observations()
+            else:
+                observations = [obs for obs in self.db.get_all_observations() if obs['object_name'] == current_filter]
+
+            if not observations:
+                QMessageBox.information(self.parent, 'Information', 'No observations to export.')
+                return
+
+            # Create a proper filename based on current date and filter
+            current_date = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            if current_filter and current_filter != '< All Names >':
+                safe_filter = "".join(c for c in current_filter if c.isalnum() or c in (' ', '-', '_')).rstrip()
+                default_filename = f"observations_{safe_filter}_{current_date}.xlsx"
+            else:
+                default_filename = f"observations_all_{current_date}.xlsx"
+            
+            file_path, _ = QFileDialog.getSaveFileName(
+                self.parent,
+                'Save Observations Excel File',
+                default_filename,
+                'Excel Files (*.xlsx)'
+            )
+
+            if not file_path:
+                return
+
+            # Create workbook and worksheet
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Observations"
+
+            # Define headers in same order as table columns (excluding ID)
+            headers = [
+                'Session ID', 'Date', 'Object', 'Camera', 'Telescope', 'Filter',
+                'Images', 'Exposure (s)', 'Total Exposure (s)', 'Moon Phase (%)',
+                'Angular Separation', 'Comments'
+            ]
+
+            # Write headers with formatting
+            header_font = Font(bold=True)
+            header_fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+            alignment = Alignment(horizontal='center')
+
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col, value=header)
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = alignment
+
+            # Write data rows
+            for row, obs in enumerate(observations, 2):
+                # Calculate angular separation same way as in load_observations
+                angular_sep = ""
+                angular_sep_value = None
+                if obs['ra'] is not None and obs['dec'] is not None and obs['moon_ra'] is not None and obs['moon_dec'] is not None:
+                    try:
+                        angular_sep_value = calculate_angular_separation(obs['ra']*15.0, obs['dec'], obs['moon_ra'], obs['moon_dec'])
+                        angular_sep = f"{angular_sep_value:.0f}°"
+                    except Exception:
+                        angular_sep = "N/A"
+
+                # Write row data in same order as headers
+                row_data = [
+                    obs['session_id'],
+                    obs['start_date'],
+                    obs['object_name'],
+                    obs['camera_name'],
+                    obs['telescope_name'],
+                    obs['filter_name'],
+                    obs['image_count'],
+                    obs['exposure_length'],
+                    obs['total_exposure'],
+                    f"{obs['moon_phase']:.1f}%" if obs['moon_phase'] is not None else "",
+                    angular_sep,
+                    obs['comments'] or ''
+                ]
+
+                for col, value in enumerate(row_data, 1):
+                    ws.cell(row=row, column=col, value=value)
+
+            # Auto-adjust column widths
+            for column in ws.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)  # Cap at 50 characters
+                ws.column_dimensions[column_letter].width = adjusted_width
+
+            # Save the workbook
+            wb.save(file_path)
+            self.statusbar.showMessage(f'Observations exported to {file_path}')
+            QMessageBox.information(self.parent, 'Success', f'Observations exported successfully to:\n{file_path}')
+
+        except Exception as e:
+            QMessageBox.critical(self.parent, 'Error', f'Failed to export observations: {str(e)}')

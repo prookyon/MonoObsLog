@@ -236,6 +236,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="exportObservationButton">
+       <property name="text">
+        <string>Export to Excel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="deleteObservationButton">
        <property name="text">
         <string>Delete Selected</string>
