@@ -10,6 +10,7 @@ from .observations_tab import ObservationsTabManager
 from .object_stats_tab import ObjectStatsTabManager
 from .monthly_stats_tab import MonthlyStatsTabManager
 from .settings_tab import SettingsTabManager
+from .about_tab import AboutTabManager
 
 __all__ = [
     'ObjectsTabManager',
@@ -22,4 +23,5 @@ __all__ = [
     'ObjectStatsTabManager',
     'MonthlyStatsTabManager',
     'SettingsTabManager',
+    'AboutTabManager',
 ]

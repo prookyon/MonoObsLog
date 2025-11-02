@@ -308,6 +308,17 @@ The application follows a **modular architecture** with clear separation of conc
 - Real-time updates to observations table highlighting when settings change
 - Automatic settings file creation with defaults if missing
 
+#### `tab_managers/about_tab.py`
+**Purpose**: Manages About tab
+**Key Methods**:
+- `setup_tab()`: Loads UI, displays version info and GitHub link
+- `open_github_link()`: Opens GitHub repository in default browser
+**UI Elements**: Icon image, version label, clickable GitHub link
+**Dependencies**: PyQt6.QtGui.QDesktopServices, PyQt6.QtCore.QUrl
+**Special Features**:
+- Clickable link that opens GitHub repository in external browser
+- Static display of application information
+
 ## UI Files
 
 The application uses Qt Designer `.ui` files for layouts:
@@ -322,6 +333,7 @@ The application uses Qt Designer `.ui` files for layouts:
 - `object_stats_tab.ui`: Object Stats tab layout
 - `monthly_stats_tab.ui`: Monthly Stats tab layout
 - `settings_tab.ui`: Settings tab layout
+- `about_tab.ui`: About tab layout
 
 ### Template Files
 
