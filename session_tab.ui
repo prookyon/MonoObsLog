@@ -84,7 +84,7 @@
      </column>
      <column>
       <property name="text">
-       <string>Moon Phase</string>
+       <string>Moon Illumination</string>
       </property>
      </column>
      <column>

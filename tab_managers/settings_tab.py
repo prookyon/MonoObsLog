@@ -34,7 +34,7 @@ class SettingsTabManager:
         self.tab_widget.addTab(settings_widget, "Settings")
 
         # Store references
-        self.moon_phase_spin_box = settings_widget.findChild(QWidget, "moonPhaseSpinBox")
+        self.moon_illumination_spin_box = settings_widget.findChild(QWidget, "moonIlluminationSpinBox")
         self.moon_separation_spin_box = settings_widget.findChild(QWidget, "moonSeparationSpinBox")
         self.save_button = settings_widget.findChild(QWidget, "saveButton")
 
@@ -47,10 +47,10 @@ class SettingsTabManager:
     def load_settings(self):
         """Load settings and populate UI."""
         try:
-            moon_phase = settings.get_moon_phase_warning()
+            moon_illumination = settings.get_moon_illumination_warning()
             moon_separation = settings.get_moon_angular_separation_warning()
 
-            self.moon_phase_spin_box.setValue(moon_phase)
+            self.moon_illumination_spin_box.setValue(moon_illumination)
             self.moon_separation_spin_box.setValue(moon_separation)
 
             self.statusbar.showMessage('Settings loaded')
@@ -60,10 +60,10 @@ class SettingsTabManager:
     def save_settings(self):
         """Save settings from UI."""
         try:
-            moon_phase = self.moon_phase_spin_box.value()
+            moon_illumination = self.moon_illumination_spin_box.value()
             moon_separation = self.moon_separation_spin_box.value()
 
-            settings.set_moon_phase_warning(moon_phase)
+            settings.set_moon_illumination_warning(moon_illumination)
             settings.set_moon_angular_separation_warning(moon_separation)
 
             # Refresh observations tab to apply new settings

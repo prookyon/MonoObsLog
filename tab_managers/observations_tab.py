@@ -90,7 +90,7 @@ class ObservationsTabManager:
         self.observations_table.setColumnWidth(7, 60)   # Images
         self.observations_table.setColumnWidth(8, 80)   # Exposure
         self.observations_table.setColumnWidth(9, 100)  # Total Exposure
-        self.observations_table.setColumnWidth(10, 80)  # Moon Phase
+        self.observations_table.setColumnWidth(10, 80)  # Moon Illumination
         self.observations_table.setColumnWidth(11, 100) # Angular Separation
         self.observations_table.setColumnWidth(12, 200) # Comments
         
@@ -177,16 +177,16 @@ class ObservationsTabManager:
                 self.observations_table.setItem(row, 8, QTableWidgetItem(str(obs['exposure_length'])))
                 self.observations_table.setItem(row, 9, QTableWidgetItem(str(obs['total_exposure'])))
 
-                # Moon Phase column with conditional highlighting
-                moon_phase_item = QTableWidgetItem(f"{obs['moon_phase']:.1f}%" if obs['moon_phase'] is not None else "")
-                moon_phase_warning = settings.get_moon_phase_warning()
-                if obs['moon_phase'] is not None and obs['moon_phase'] > moon_phase_warning:
+                # Moon Illumination column with conditional highlighting
+                moon_illumination_item = QTableWidgetItem(f"{obs['moon_illumination']:.1f}%" if obs['moon_illumination'] is not None else "")
+                moon_illumination_warning = settings.get_moon_illumination_warning()
+                if obs['moon_illumination'] is not None and obs['moon_illumination'] > moon_illumination_warning:
                     # For pastel: high value, low-to-medium saturation
                     saturation = 40  # 0-100, lower = more pastel
                     value_hsv = 95   # 0-100, brightness
                     color = QColor.fromHsv(0, int(saturation * 255 / 100), int(value_hsv * 255 / 100))
-                    moon_phase_item.setBackground(color)
-                self.observations_table.setItem(row, 10, moon_phase_item)
+                    moon_illumination_item.setBackground(color)
+                self.observations_table.setItem(row, 10, moon_illumination_item)
 
                 # Angular Separation column with conditional highlighting
                 angular_sep_item = QTableWidgetItem(angular_sep)
@@ -299,7 +299,7 @@ class ObservationsTabManager:
         row = self.observations_table.currentRow()
         observation_id = int(self.observations_table.item(row, 0).text())
         object_name = self.observations_table.item(row, 3).text()
-        moon_phase = self.observations_table.item(row, 10).text()
+        moon_illumination = self.observations_table.item(row, 10).text()
         angular_sep = self.observations_table.item(row, 11).text()
 
         reply = QMessageBox.question(
@@ -378,13 +378,14 @@ class ObservationsTabManager:
 
             # Create workbook and worksheet
             wb = openpyxl.Workbook()
+            wb.iso_dates = True
             ws = wb.active
             ws.title = "Observations"
 
             # Define headers in same order as table columns (excluding ID)
             headers = [
                 'Session ID', 'Date', 'Object', 'Camera', 'Telescope', 'Filter',
-                'Images', 'Exposure (s)', 'Total Exposure (s)', 'Moon Phase (%)',
+                'Images', 'Exposure (s)', 'Total Exposure (s)', 'Moon Illumination (%)',
                 'Angular Separation', 'Comments'
             ]
 
@@ -407,14 +408,13 @@ class ObservationsTabManager:
                 if obs['ra'] is not None and obs['dec'] is not None and obs['moon_ra'] is not None and obs['moon_dec'] is not None:
                     try:
                         angular_sep_value = calculate_angular_separation(obs['ra']*15.0, obs['dec'], obs['moon_ra'], obs['moon_dec'])
-                        angular_sep = f"{angular_sep_value:.0f}°"
                     except Exception:
-                        angular_sep = "N/A"
+                        angular_sep_value = ""
 
                 # Write row data in same order as headers
                 row_data = [
                     obs['session_id'],
-                    obs['start_date'],
+                    datetime.datetime.strptime(obs['start_date'],"%Y-%m-%d"),
                     obs['object_name'],
                     obs['camera_name'],
                     obs['telescope_name'],
@@ -422,13 +422,17 @@ class ObservationsTabManager:
                     obs['image_count'],
                     obs['exposure_length'],
                     obs['total_exposure'],
-                    f"{obs['moon_phase']:.1f}%" if obs['moon_phase'] is not None else "",
-                    angular_sep,
+                    float(obs['moon_illumination'])/100.0 if obs['moon_illumination'] is not None else "",
+                    angular_sep_value,
                     obs['comments'] or ''
                 ]
 
                 for col, value in enumerate(row_data, 1):
                     ws.cell(row=row, column=col, value=value)
+                
+                ws.cell(row=row, column=2).number_format = 'yyyy-mm-dd'  # Date format
+                ws.cell(row=row, column=10).number_format = '0%'  # Moon Illumination as percentage
+                ws.cell(row=row, column=11).number_format = '0°'    # Angular Separation in degrees
 
             # Auto-adjust column widths
             for column in ws.columns:
@@ -511,9 +515,9 @@ class ObservationsTabManager:
                     except Exception:
                         angular_sep = "N/A"
 
-                # Check for moon phase warning
-                moon_phase_warning = settings.get_moon_phase_warning()
-                if obs['moon_phase'] is not None and obs['moon_phase'] > moon_phase_warning:
+                # Check for moon illumination warning
+                moon_illumination_warning = settings.get_moon_illumination_warning()
+                if obs['moon_illumination'] is not None and obs['moon_illumination'] > moon_illumination_warning:
                     moon_warning_class = "moon-warning"
 
                 # Check for angular separation warning
@@ -531,7 +535,7 @@ class ObservationsTabManager:
                     <td style="text-align: center;">{obs['image_count']}</td>
                     <td style="text-align: center;">{obs['exposure_length']}</td>
                     <td style="text-align: center;">{obs['total_exposure']}</td>
-                    <td class="{moon_warning_class}" style="text-align: center;">{f"{obs['moon_phase']:.1f}%" if obs['moon_phase'] is not None else ""}</td>
+                    <td class="{moon_warning_class}" style="text-align: center;">{f"{obs['moon_illumination']:.0f}%" if obs['moon_illumination'] is not None else ""}</td>
                     <td class="{angular_warning_class}" style="text-align: center;">{angular_sep}</td>
                     <td>{obs['comments'] or ''}</td>
                 </tr>

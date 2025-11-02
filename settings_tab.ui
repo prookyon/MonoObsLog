@@ -18,14 +18,14 @@
      </property>
      <layout class="QFormLayout" name="formLayout">
       <item row="0" column="0">
-       <widget class="QLabel" name="moonPhaseLabel">
+       <widget class="QLabel" name="moonIlluminationLabel">
         <property name="text">
-         <string>Moon phase warning %:</string>
+         <string>Moon illumination warning %:</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QSpinBox" name="moonPhaseSpinBox">
+       <widget class="QSpinBox" name="moonIlluminationSpinBox">
         <property name="minimum">
          <number>0</number>
         </property>

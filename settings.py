@@ -4,7 +4,7 @@ import os
 SETTINGS_FILE = 'settings.json'
 
 DEFAULT_SETTINGS = {
-    'moon_phase_warning_percent': 75,
+    'moon_illumination_warning_percent': 75,
     'moon_angular_separation_warning_deg': 60
     # Note: database_path intentionally has no default - user must select on first run
 }
@@ -29,18 +29,18 @@ def save_settings(settings):
     except IOError:
         pass
 
-def get_moon_phase_warning():
-    """Get moon phase warning percentage."""
-    return load_settings()['moon_phase_warning_percent']
+def get_moon_illumination_warning():
+    """Get moon illumination warning percentage."""
+    return load_settings()['moon_illumination_warning_percent']
 
 def get_moon_angular_separation_warning():
     """Get moon angular separation warning degrees."""
     return load_settings()['moon_angular_separation_warning_deg']
 
-def set_moon_phase_warning(value):
-    """Set moon phase warning percentage."""
+def set_moon_illumination_warning(value):
+    """Set moon illumination warning percentage."""
     settings = load_settings()
-    settings['moon_phase_warning_percent'] = value
+    settings['moon_illumination_warning_percent'] = value
     save_settings(settings)
 
 def set_moon_angular_separation_warning(value):

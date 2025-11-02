@@ -82,7 +82,7 @@ The application follows a **modular architecture** with clear separation of conc
 - Coordinates are NULL by default
 - Can be set manually or via astropy online lookup (lookup returns degrees, converted to hours for storage)
 **Moon Data Storage**:
-- Sessions table includes `moon_phase` (illumination %), `moon_ra` (Right Ascension in degrees), and `moon_dec` (Declination in degrees)
+- Sessions table includes `moon_illumination` (illumination %), `moon_ra` (Right Ascension in degrees), and `moon_dec` (Declination in degrees)
 - Moon data is automatically calculated and stored when sessions are added/edited using `calculations.calculate_moon_data()`
 **When to modify**:
 - Adding new database tables
@@ -92,7 +92,7 @@ The application follows a **modular architecture** with clear separation of conc
 #### `utilities.py`
 **Purpose**: Console utilities for astronomical calculations and database maintenance
 **Key Functions**:
-- `--calc-moon`: Recalculates moon phase, Right Ascension, and Declination for all sessions in database
+- `--calc-moon`: Recalculates moon illumination, Right Ascension, and Declination for all sessions in database
 - `calculate_moon_data_for_all_sessions()`: Core function that processes all sessions and updates moon data
 **Dependencies**: calculations.py, database.py, argparse, datetime
 **Usage**: Command-line interface for batch operations on moon data
@@ -116,14 +116,14 @@ The application follows a **modular architecture** with clear separation of conc
 **Key Functions**:
 - `load_settings()`: Loads settings from JSON file, creates with defaults if missing
 - `save_settings(settings)`: Saves settings dictionary to JSON file
-- `get_moon_phase_warning()`: Returns moon phase warning percentage
+- `get_moon_illumination_warning()`: Returns moon illumination warning percentage
 - `get_moon_angular_separation_warning()`: Returns angular separation warning degrees
-- `set_moon_phase_warning(value)`: Sets moon phase warning percentage
+- `set_moon_illumination_warning(value)`: Sets moon illumination warning percentage
 - `set_moon_angular_separation_warning(value)`: Sets angular separation warning degrees
 - `get_database_path()`: Returns database path if set, None otherwise
 - `set_database_path(path)`: Sets database path
 **Dependencies**: json, os
-**Storage**: settings.json file with default values (moon_phase_warning_percent: 75, moon_angular_separation_warning_deg: 60). database_path has no default - user must select on first run.
+**Storage**: settings.json file with default values (moon_illumination_warning_percent: 75, moon_angular_separation_warning_deg: 60). database_path has no default - user must select on first run.
 **When to modify**: Adding new configurable settings
 
 ### Dialog Classes
@@ -183,7 +183,7 @@ The application follows a **modular architecture** with clear separation of conc
 **Purpose**: Manages Sessions tab (observation sessions with dates and moon data)
 **Key Methods**:
 - `setup_tab()`: Loads UI, sets current date, connects signals, configures table columns
-- `load_sessions()`: Fetches and displays sessions including moon phase, RA, and Dec
+- `load_sessions()`: Fetches and displays sessions including moon illumination, RA, and Dec
 - `add_session()`: Adds new session with ID, date, and automatically calculates moon data
 - `edit_session()`: Opens EditSessionDialog, recalculates moon data on date change
 - `delete_session()`: Deletes session with confirmation
@@ -260,8 +260,8 @@ The application follows a **modular architecture** with clear separation of conc
 **Calculated Field**: Total exposure = image_count × exposure_length (calculated in database)
 **Special Features**:
 - QListView filter showing "< All Names >" and unique observed objects
-- Displays session date, moon phase percentage, and angular separation between object and moon
-- Conditional highlighting: pastel red background for moon phase > configurable warning % and angular separation < configurable warning °
+- Displays session date, moon illumination percentage, and angular separation between object and moon
+- Conditional highlighting: pastel red background for moon illumination > configurable warning % and angular separation < configurable warning °
 - **Excel Export**: "Export to Excel" button exports current filtered observations with same columns as table, includes formatted headers, auto-sized columns, and date-stamped filenames
 - **HTML Export**: "Export to HTML" action exports observations using template file with professional styling, warning highlighting, and responsive design
 
@@ -297,7 +297,7 @@ The application follows a **modular architecture** with clear separation of conc
 - `setup_tab()`: Loads UI, connects signals, loads current settings
 - `load_settings()`: Populates UI with current settings values
 - `save_settings()`: Saves UI values to settings file and refreshes observations table
-**UI Elements**: Spin boxes for moon phase warning % and angular separation warning °
+**UI Elements**: Spin boxes for moon illumination warning % and angular separation warning °
 **Dependencies**: settings.py module
 **Special Features**:
 - Real-time updates to observations table highlighting when settings change

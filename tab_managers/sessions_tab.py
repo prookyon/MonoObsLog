@@ -74,7 +74,7 @@ class SessionsTabManager:
                 self.sessions_table.setItem(row, 0, QTableWidgetItem(str(session['id'])))
                 self.sessions_table.setItem(row, 1, QTableWidgetItem(session['session_id']))
                 self.sessions_table.setItem(row, 2, QTableWidgetItem(session['start_date']))
-                self.sessions_table.setItem(row, 3, QTableWidgetItem(f"{session['moon_phase']:.2f}%" if session['moon_phase'] is not None else ""))
+                self.sessions_table.setItem(row, 3, QTableWidgetItem(f"{session['moon_illumination']:.2f}%" if session['moon_illumination'] is not None else ""))
                 self.sessions_table.setItem(row, 4, QTableWidgetItem(f"{session['moon_ra']:.2f}°" if session['moon_ra'] is not None else ""))
                 self.sessions_table.setItem(row, 5, QTableWidgetItem(f"{session['moon_dec']:.2f}°" if session['moon_dec'] is not None else ""))
 
@@ -99,9 +99,9 @@ class SessionsTabManager:
         try:
             # Calculate moon data for the midnight following the start date
             start_date_plus_one = datetime.datetime.strptime(start_date, "%Y-%m-%d") + datetime.timedelta(days=1)
-            moon_phase, moon_ra, moon_dec = calculate_moon_data(start_date_plus_one.isoformat())
+            moon_illumination, moon_ra, moon_dec = calculate_moon_data(start_date_plus_one.isoformat())
 
-            self.db.add_session(session_id, start_date, moon_phase, moon_ra, moon_dec)
+            self.db.add_session(session_id, start_date, moon_illumination, moon_ra, moon_dec)
             self.session_id_line_edit.clear()
             self.start_date_edit.setDate(QDate.currentDate())
             self.load_sessions()
@@ -134,9 +134,9 @@ class SessionsTabManager:
             try:
                 # Calculate moon data for the new date
                 new_start_date_plus_one = datetime.datetime.strptime(new_start_date, "%Y-%m-%d") + datetime.timedelta(days=1)
-                moon_phase, moon_ra, moon_dec = calculate_moon_data(new_start_date_plus_one.isoformat())
+                moon_illumination, moon_ra, moon_dec = calculate_moon_data(new_start_date_plus_one.isoformat())
 
-                self.db.update_session(session_id, new_session_id, new_start_date, moon_phase, moon_ra, moon_dec)
+                self.db.update_session(session_id, new_session_id, new_start_date, moon_illumination, moon_ra, moon_dec)
                 self.load_sessions()
                 self.statusbar.showMessage(f'Updated session ID {session_id}')
             except Exception as e:

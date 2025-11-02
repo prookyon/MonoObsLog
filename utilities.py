@@ -3,13 +3,13 @@
 Console utilities for the Observation Log Application
 
 This module provides command-line utilities for managing astronomical observation data,
-including moon phase calculations and database maintenance operations.
+including moon illumination calculations and database maintenance operations.
 
 Usage:
     python utilities.py --calc-moon [--database DATABASE_FILE]
     
 Options:
-    --calc-moon          Recalculate moon phase and location data for all sessions
+    --calc-moon          Recalculate moon illumination and location data for all sessions
     --database FILE      Specify database file path (default: objects.db)
     --help, -h           Show this help message
 """
@@ -29,7 +29,7 @@ from database import Database
 
 def calculate_moon_data_for_all_sessions(db_path: str = "objects.db") -> dict:
     """
-    Recalculate moon phase and location data for all sessions in the database.
+    Recalculate moon illumination and location data for all sessions in the database.
     
     Parameters:
     -----------
@@ -95,14 +95,14 @@ def calculate_moon_data_for_all_sessions(db_path: str = "objects.db") -> dict:
             
             try:
                 # Calculate new moon data
-                moon_phase, moon_ra, moon_dec = calculate_moon_data(start_date)
+                moon_illumination, moon_ra, moon_dec = calculate_moon_data(start_date)
                 
                 # Update session in database
                 db.update_session(
                     session_id=session['id'],
                     new_session_id=session_id,
                     start_date=start_date,
-                    moon_phase=moon_phase,
+                    moon_illumination=moon_illumination,
                     moon_ra=moon_ra,
                     moon_dec=moon_dec
                 )
@@ -110,7 +110,7 @@ def calculate_moon_data_for_all_sessions(db_path: str = "objects.db") -> dict:
                 result = {
                     'session_id': session_id,
                     'start_date': start_date,
-                    'moon_phase': round(moon_phase, 2),
+                    'moon_illumination': round(moon_illumination, 2),
                     'moon_ra': round(moon_ra, 4),
                     'moon_dec': round(moon_dec, 4),
                     'status': 'success'
@@ -118,7 +118,7 @@ def calculate_moon_data_for_all_sessions(db_path: str = "objects.db") -> dict:
                 stats['results'].append(result)
                 stats['updated_sessions'] += 1
                 
-                print(f"  [OK] Updated - Phase: {moon_phase:.2f}%, RA: {moon_ra:.4f}°, Dec: {moon_dec:.4f}°")
+                print(f"  [OK] Updated - illumination: {moon_illumination:.2f}%, RA: {moon_ra:.4f}°, Dec: {moon_dec:.4f}°")
                 
             except Exception as e:
                 error_msg = f"Error processing session '{session_id}': {str(e)}"
@@ -172,7 +172,7 @@ Examples:
 This command will:
 1. Connect to the specified database
 2. Retrieve all observation sessions
-3. Recalculate moon phase and coordinates for each session
+3. Recalculate moon illumination and coordinates for each session
 4. Update the database with the new calculations
 5. Display progress and summary statistics
         """
@@ -181,7 +181,7 @@ This command will:
     parser.add_argument(
         '--calc-moon',
         action='store_true',
-        help='Recalculate moon phase and location data for all sessions in the database'
+        help='Recalculate moon illumination and location data for all sessions in the database'
     )
     
     parser.add_argument(
