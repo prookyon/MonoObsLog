@@ -511,7 +511,7 @@ class Database:
         self.cursor.execute("""
             SELECT
                 strftime('%Y-%m', s.start_date) as year_month,
-                SUM(o.total_exposure)/3600 as total_exposure
+                SUM(o.total_exposure)/3600.0 as total_exposure
             FROM observations o
             JOIN sessions s ON o.session_id = s.session_id
             GROUP BY strftime('%Y-%m', s.start_date)
