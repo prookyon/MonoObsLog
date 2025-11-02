@@ -5,6 +5,8 @@ Console utilities for the Observation Log Application
 This module provides command-line utilities for managing astronomical observation data,
 including moon illumination calculations and database maintenance operations.
 
+It also provides reusable UI utility classes for PyQt6 widgets.
+
 Usage:
     python utilities.py --calc-moon [--database DATABASE_FILE]
     
@@ -25,6 +27,56 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from calculations import calculate_moon_data
 from database import Database
+
+try:
+    from PyQt6.QtWidgets import QTableWidgetItem
+except ImportError:
+    # PyQt6 not available - skip UI utilities
+    QTableWidgetItem = None
+
+
+class NumericTableWidgetItem(QTableWidgetItem if QTableWidgetItem else object):
+    """
+    QTableWidgetItem subclass that sorts numerically instead of alphabetically.
+    
+    This is useful for columns containing numeric data that should be sorted
+    in numeric order (1, 2, 10, 20) rather than alphabetic order (1, 10, 2, 20).
+    
+    Usage:
+        table.setItem(row, col, NumericTableWidgetItem(numeric_value))
+    """
+    
+    def __init__(self, value):
+        """
+        Initialize with a numeric value.
+        
+        Parameters:
+        -----------
+        value : int or float
+            The numeric value to store and display
+        """
+        if QTableWidgetItem is None:
+            raise ImportError("PyQt6 is required to use NumericTableWidgetItem")
+        super().__init__(str(value))
+        self.numeric_value = value
+    
+    def __lt__(self, other):
+        """
+        Compare items numerically for sorting.
+        
+        Parameters:
+        -----------
+        other : QTableWidgetItem
+            The other item to compare against
+            
+        Returns:
+        --------
+        bool
+            True if this item's numeric value is less than the other's
+        """
+        if isinstance(other, NumericTableWidgetItem):
+            return self.numeric_value < other.numeric_value
+        return super().__lt__(other)
 
 
 def calculate_moon_data_for_all_sessions(db_path: str = "objects.db") -> dict:

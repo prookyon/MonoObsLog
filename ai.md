@@ -90,13 +90,18 @@ The application follows a **modular architecture** with clear separation of conc
 - Adding new queries or operations
 
 #### `utilities.py`
-**Purpose**: Console utilities for astronomical calculations and database maintenance
+**Purpose**: Console utilities for astronomical calculations and database maintenance, plus reusable UI utility classes
 **Key Functions**:
 - `--calc-moon`: Recalculates moon illumination, Right Ascension, and Declination for all sessions in database
 - `calculate_moon_data_for_all_sessions()`: Core function that processes all sessions and updates moon data
-**Dependencies**: calculations.py, database.py, argparse, datetime
-**Usage**: Command-line interface for batch operations on moon data
-**When to modify**: Adding new console utilities or batch processing features
+**Key Classes**:
+- `NumericTableWidgetItem`: QTableWidgetItem subclass that sorts numerically instead of alphabetically.
+**Dependencies**: calculations.py, database.py, argparse, datetime, PyQt6 (optional for UI classes)
+**Usage**:
+  - Command-line interface for batch operations on moon data
+  - Import NumericTableWidgetItem for use in tab managers: `from utilities import NumericTableWidgetItem`
+  - Create numeric table items: `table.setItem(row, col, NumericTableWidgetItem(numeric_value))`
+**When to modify**: Adding new console utilities, batch processing features, or reusable UI utility classes
 
 #### `backup.py`
 **Purpose**: Automatic weekly database backup management
