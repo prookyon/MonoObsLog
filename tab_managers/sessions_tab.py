@@ -40,7 +40,7 @@ class SessionsTabManager:
         
         # Store references
         self.sessions_table = session_widget.findChild(QWidget, "sessionsTable")
-        self.session_id_line_edit = session_widget.findChild(QWidget, "sessionIdLineEdit")
+        self.session_name_line_edit = session_widget.findChild(QWidget, "sessionNameLineEdit")
         self.start_date_edit = session_widget.findChild(QWidget, "startDateEdit")
         self.add_session_button = session_widget.findChild(QWidget, "addSessionButton")
         self.edit_session_button = session_widget.findChild(QWidget, "editSessionButton")
@@ -53,7 +53,7 @@ class SessionsTabManager:
         self.add_session_button.clicked.connect(self.add_session)
         self.edit_session_button.clicked.connect(self.edit_session)
         self.delete_session_button.clicked.connect(self.delete_session)
-        self.session_id_line_edit.returnPressed.connect(self.add_session)
+        self.session_name_line_edit.returnPressed.connect(self.add_session)
         
         # Hide ID column
         self.sessions_table.setColumnHidden(0, True)
@@ -73,7 +73,8 @@ class SessionsTabManager:
 
             for row, session in enumerate(sessions):
                 self.sessions_table.setItem(row, 0, QTableWidgetItem(str(session['id'])))
-                self.sessions_table.setItem(row, 1, QTableWidgetItem(session['session_id']))
+                # Display 'name' field instead of 'session_id'
+                self.sessions_table.setItem(row, 1, QTableWidgetItem(session['name']))
                 self.sessions_table.setItem(row, 2, QTableWidgetItem(session['start_date']))
                 self.sessions_table.setItem(row, 3, NumericTableWidgetItem(f"{session['moon_illumination']:.0f}%" if session['moon_illumination'] is not None else ""))
                 self.sessions_table.setItem(row, 4, NumericTableWidgetItem(f"{session['moon_ra']:.2f}°" if session['moon_ra'] is not None else ""))
@@ -85,16 +86,16 @@ class SessionsTabManager:
     
     def add_session(self):
         """Add a new session to the database."""
-        session_id = self.session_id_line_edit.text().strip()
+        name = self.session_name_line_edit.text().strip()
         start_date = self.start_date_edit.date().toString("yyyy-MM-dd")
 
-        if not session_id:
-            QMessageBox.warning(self.parent, 'Warning', 'Please enter a session ID.')
+        if not name:
+            QMessageBox.warning(self.parent, 'Warning', 'Please enter a session name.')
             return
 
-        # Check for duplicate session ID
-        if self.db.session_id_exists(session_id):
-            QMessageBox.warning(self.parent, 'Warning', f'Session ID "{session_id}" already exists. Please choose a unique session ID.')
+        # Check for duplicate session name
+        if self.db.session_name_exists(name):
+            QMessageBox.warning(self.parent, 'Warning', f'Session name "{name}" already exists. Please choose a unique session name.')
             return
 
         try:
@@ -102,11 +103,11 @@ class SessionsTabManager:
             start_date_plus_one = datetime.datetime.strptime(start_date, "%Y-%m-%d") + datetime.timedelta(days=1)
             moon_illumination, moon_ra, moon_dec = calculate_moon_data(start_date_plus_one.isoformat())
 
-            self.db.add_session(session_id, start_date, moon_illumination, moon_ra, moon_dec)
-            self.session_id_line_edit.clear()
+            self.db.add_session(name, start_date, moon_illumination, moon_ra, moon_dec)
+            self.session_name_line_edit.clear()
             self.start_date_edit.setDate(QDate.currentDate())
             self.load_sessions()
-            self.statusbar.showMessage(f'Added session: {session_id}')
+            self.statusbar.showMessage(f'Added session: {name}')
         except Exception as e:
             QMessageBox.critical(self.parent, 'Error', f'Failed to add session: {str(e)}')
     
@@ -120,16 +121,16 @@ class SessionsTabManager:
 
         row = self.sessions_table.currentRow()
         session_id = int(self.sessions_table.item(row, 0).text())
-        current_session_id = self.sessions_table.item(row, 1).text()
+        current_name = self.sessions_table.item(row, 1).text()
         current_start_date = self.sessions_table.item(row, 2).text()
 
-        dialog = EditSessionDialog(current_session_id, current_start_date, self.parent)
+        dialog = EditSessionDialog(current_name, current_start_date, self.parent)
         if dialog.exec():
-            new_session_id, new_start_date = dialog.get_values()
+            new_name, new_start_date = dialog.get_values()
 
-            # Check for duplicate session ID, excluding the current session
-            if self.db.session_id_exists(new_session_id, exclude_id=session_id):
-                QMessageBox.warning(self.parent, 'Warning', f'Session ID "{new_session_id}" already exists. Please choose a unique session ID.')
+            # Check for duplicate session name, excluding the current session
+            if self.db.session_name_exists(new_name, exclude_id=session_id):
+                QMessageBox.warning(self.parent, 'Warning', f'Session name "{new_name}" already exists. Please choose a unique session name.')
                 return
 
             try:
@@ -137,7 +138,7 @@ class SessionsTabManager:
                 new_start_date_plus_one = datetime.datetime.strptime(new_start_date, "%Y-%m-%d") + datetime.timedelta(days=1)
                 moon_illumination, moon_ra, moon_dec = calculate_moon_data(new_start_date_plus_one.isoformat())
 
-                self.db.update_session(session_id, new_session_id, new_start_date, moon_illumination, moon_ra, moon_dec)
+                self.db.update_session(session_id, new_name, new_start_date, moon_illumination, moon_ra, moon_dec)
                 self.load_sessions()
                 self.statusbar.showMessage(f'Updated session ID {session_id}')
             except Exception as e:

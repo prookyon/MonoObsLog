@@ -14,16 +14,16 @@
    <item>
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="0">
-      <widget class="QLabel" name="sessionIdLabel">
+      <widget class="QLabel" name="sessionNameLabel">
        <property name="text">
-        <string>Session ID:</string>
+        <string>Session Name:</string>
        </property>
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="sessionIdLineEdit">
+      <widget class="QLineEdit" name="sessionNameLineEdit">
        <property name="placeholderText">
-        <string>Enter session ID</string>
+        <string>Enter session name (unique)</string>
        </property>
       </widget>
      </item>
@@ -77,7 +77,7 @@
      </column>
      <column>
       <property name="text">
-       <string>Session ID</string>
+       <string>Session Name</string>
       </property>
      </column>
      <column>

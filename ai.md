@@ -74,16 +74,21 @@ The application follows a **modular architecture** with clear separation of conc
 - Sessions (observation sessions with moon data)
 - Cameras (imaging equipment)
 - Filter Types (categories of filters)
-- Filters (optical filters)
+- Filters (optical filters with INTEGER filter_type_id reference)
 - Telescopes (optical equipment)
-- Observations (observation records)
+- Observations (observation records with INTEGER foreign key references)
 **Object Coordinate Storage**:
 - Objects table includes optional `ra` (decimal hours, 0-24h) and `dec` (decimal degrees, -90° to +90°)
 - Coordinates are NULL by default
 - Can be set manually or via astropy online lookup (lookup returns degrees, converted to hours for storage)
 **Moon Data Storage**:
-- Sessions table includes `moon_illumination` (illumination %), `moon_ra` (Right Ascension in degrees), and `moon_dec` (Declination in degrees)
+- Sessions table includes `name` (unique session identifier), `moon_illumination` (illumination %), `moon_ra` (Right Ascension in degrees), and `moon_dec` (Declination in degrees)
 - Moon data is automatically calculated and stored when sessions are added/edited using `calculations.calculate_moon_data()`
+**Foreign Key Architecture**:
+- All foreign keys use INTEGER references for referential integrity and performance
+- Filters reference filter_types by `filter_type_id` (INTEGER)
+- Observations reference all entities by INTEGER IDs (session_id, object_id, camera_id, telescope_id, filter_id)
+- Database queries use JOINs to retrieve display names while maintaining ID-based relationships
 **When to modify**:
 - Adding new database tables
 - Modifying existing schemas
@@ -136,16 +141,28 @@ The application follows a **modular architecture** with clear separation of conc
 #### `dialogs.py`
 **Purpose**: Reusable edit dialogs for all entities
 **Classes**:
-- `EditSessionDialog`: Edit session ID and start date
+- `EditSessionDialog`: Edit session name and start date
 - `EditCameraDialog`: Edit camera specifications (name, sensor, pixel size, dimensions)
-- `EditFilterDialog`: Edit filter name and type
+- `EditFilterDialog`: Edit filter name and filter type (using INTEGER filter_type_id)
 - `EditTelescopeDialog`: Edit telescope parameters (name, aperture, f-ratio, focal length)
-- `EditObservationDialog`: Edit observation records (all fields with combo boxes)
+- `EditObservationDialog`: Edit observation records (all fields with ID-based combo boxes)
 - `EditObjectDialog`: Edit object name and optional equatorial coordinates (RA/Dec) with online lookup capability
 **Pattern**: All dialogs follow the same structure:
-1. Constructor accepts current values and parent
-2. `get_values()` method returns edited values as tuple
+1. Constructor accepts current values (as IDs for foreign keys) and parent
+2. `get_values()` method returns edited values as tuple (IDs for foreign keys)
 3. Uses QFormLayout with OK/Cancel buttons
+4. Combo boxes store both display text and underlying INTEGER ID using `addItem(name, id)`
+**EditFilterDialog Special Features**:
+- Accepts `filter_type_id` (INTEGER)
+- Populates combo box with filter types list containing `{'id': int, 'name': str}` dictionaries
+- Uses `addItem(name, id)` to store both display name and ID
+- Returns `(name, filter_type_id)` where filter_type_id is INTEGER
+**EditObservationDialog Special Features**:
+- All combo boxes (session, object, camera, telescope, filter) store INTEGER IDs
+- Constructor accepts INTEGER IDs for current values
+- Accepts entity lists as dictionaries with `{'id': int, 'name': str}`
+- Uses `findData(id)` to set current selection by ID
+- Returns tuple of INTEGER IDs for all foreign key references
 **EditObjectDialog Special Features**:
 - RA spin box: 0-24 hours (stored in decimal hour format)
 - Dec spin box: -90 to +90 degrees
@@ -188,16 +205,17 @@ The application follows a **modular architecture** with clear separation of conc
 **Purpose**: Manages Sessions tab (observation sessions with dates and moon data)
 **Key Methods**:
 - `setup_tab()`: Loads UI, sets current date, connects signals, configures table columns
-- `load_sessions()`: Fetches and displays sessions including moon illumination, RA, and Dec
-- `add_session()`: Adds new session with ID, date, and automatically calculates moon data
+- `load_sessions()`: Fetches and displays sessions including `name`, moon illumination, RA, and Dec
+- `add_session()`: Adds new session with name, date, and automatically calculates moon data
 - `edit_session()`: Opens EditSessionDialog, recalculates moon data on date change
 - `delete_session()`: Deletes session with confirmation
-**UI Elements**: Table (with moon columns), session ID input, date picker, add/edit/delete buttons
+**UI Elements**: Table (with moon columns), session name input, date picker, add/edit/delete buttons
 **Dependencies**: calculations.calculate_moon_data()
 **Special Features**:
 - Date picker with calendar popup
 - Automatic moon data calculation for midnight following the start date
-- Displays moon illumination percentage, RA, and Dec in table
+- Displays session name, moon illumination percentage, RA, and Dec in table
+- Uses `session_name_exists()` for duplicate validation
 
 #### `tab_managers/cameras_tab.py`
 **Purpose**: Manages Cameras tab (imaging equipment specifications)
@@ -225,13 +243,17 @@ The application follows a **modular architecture** with clear separation of conc
 **Purpose**: Manages Filters tab (specific filters like Ha, OIII, Red)
 **Key Methods**:
 - `setup_tab()`: Loads UI, connects signals, updates filter type combo
-- `update_filter_type_combo()`: Populates combo box with available filter types
-- `load_filters()`: Fetches and displays all filters
-- `add_filter()`: Adds new filter with name and type
-- `edit_filter()`: Opens EditFilterDialog for editing
+- `update_filter_type_combo()`: Populates combo box with available filter types, storing INTEGER IDs using `addItem(name, id)`
+- `load_filters()`: Fetches and displays all filters with filter type names from JOIN
+- `add_filter()`: Adds new filter with name and filter_type_id (INTEGER extracted using `currentData()`)
+- `edit_filter()`: Opens EditFilterDialog with filter_type_id, passes dictionary of filter types with IDs
 - `delete_filter()`: Deletes filter with confirmation
-**UI Elements**: Table, name input, filter type combo box, add/edit/delete buttons
+**UI Elements**: Table, name input, filter type combo box (stores IDs), add/edit/delete buttons
 **Dependencies**: Requires filter types to exist
+**Special Features**:
+- Combo box stores both display name and INTEGER ID for each filter type
+- Database JOIN retrieves filter type name for display
+- All operations use INTEGER filter_type_id internally
 
 #### `tab_managers/telescopes_tab.py`
 **Purpose**: Manages Telescopes tab (optical equipment specifications)
@@ -247,23 +269,25 @@ The application follows a **modular architecture** with clear separation of conc
 **Formula**: f_ratio = focal_length / aperture (rounded to 1 decimal)
 
 #### `tab_managers/observations_tab.py`
-**Purpose**: Manages Observations tab (observation records linking all entities)
+**Purpose**: Manages Observations tab (observation records linking all entities via INTEGER foreign keys)
 **Key Methods**:
 - `setup_tab()`: Loads UI, connects signals, configures table columns
-- `update_observation_combos()`: Populates all combo boxes with current data
-- `update_filter_list()`: Populates filter list with unique object names from observations
-- `load_observations()`: Fetches and displays observations (optionally filtered by object)
+- `update_observation_combos()`: Populates all combo boxes with current data, storing INTEGER IDs using `addItem(name, id)` pattern
+- `update_filter_list()`: Populates filter list with unique object names from observations (retrieved via JOIN)
+- `load_observations()`: Fetches and displays observations with session name from JOIN (optionally filtered by object)
 - `filter_observations()`: Handles filter selection changes
-- `add_observation()`: Adds new observation record
-- `edit_observation()`: Opens EditObservationDialog for editing
+- `add_observation()`: Adds new observation record, extracting INTEGER IDs from combos using `currentData()`
+- `edit_observation()`: Opens EditObservationDialog with INTEGER IDs, retrieves observation data from database to get current IDs
 - `delete_observation()`: Deletes observation with confirmation
-- `export_observations_to_excel()`: Exports current filtered observations to Excel file with same columns as visible in table
-- `export_observations_to_html()`: Exports current filtered observations to HTML file with same columns as table using template system
-**UI Elements**: Table, combo boxes for session/object/camera/telescope/filter, spin boxes for counts/exposure, comments input, QListView for object filtering, "Export" button with Excel/HTML menu
+- `export_observations_to_excel()`: Exports current filtered observations to Excel file with session names from JOIN
+- `export_observations_to_html()`: Exports current filtered observations to HTML file with session names from JOIN
+**UI Elements**: Table, combo boxes for session/object/camera/telescope/filter (all storing IDs), spin boxes for counts/exposure, comments input, QListView for object filtering, "Export" button with Excel/HTML menu
 **Dependencies**: Requires data in all other tabs (sessions, objects, cameras, telescopes, filters), openpyxl for Excel export, template file for HTML export
-**Validation**: Ensures all required fields are selected and numeric values are non-zero
+**Validation**: Ensures all required fields are selected (checks for non-None IDs) and numeric values are non-zero
 **Calculated Field**: Total exposure = image_count × exposure_length (calculated in database)
 **Special Features**:
+- All combo boxes follow ID-based pattern: `addItem(name, id)` and `currentData()` to extract ID
+- Displays session name (from JOIN) instead of session_id
 - QListView filter showing "< All Names >" and unique observed objects
 - Displays session date, moon illumination percentage, and angular separation between object and moon
 - Conditional highlighting: pastel red background for moon illumination > configurable warning % and angular separation < configurable warning °
@@ -361,20 +385,23 @@ class XxxTabManager:
         # Load initial data
     
     def load_xxx(self):
-        # Fetch from database
+        # Fetch from database (with JOINs for display names)
         # Populate table
         # Update status bar
     
     def add_xxx(self):
         # Validate input
-        # Add to database
+        # Extract IDs from combo boxes using currentData() if applicable
+        # Add to database with IDs
         # Clear inputs
         # Reload table
     
     def edit_xxx(self):
         # Get selected row
-        # Open edit dialog
-        # Update database
+        # Retrieve entity IDs from database if needed
+        # Open edit dialog with IDs
+        # Extract IDs from dialog result
+        # Update database with IDs
         # Reload table
     
     def delete_xxx(self):
@@ -382,6 +409,22 @@ class XxxTabManager:
         # Confirm deletion
         # Delete from database
         # Reload table
+```
+
+### Combo Box Pattern (ID-Based)
+For combo boxes that reference foreign entities:
+```python
+# Populate combo box with both name and ID
+for entity in entities:
+    combo_box.addItem(entity['name'], entity['id'])
+
+# Extract ID when needed
+entity_id = combo_box.currentData()  # Returns INTEGER ID
+
+# Set current selection by ID
+index = combo_box.findData(entity_id)
+if index >= 0:
+    combo_box.setCurrentIndex(index)
 ```
 
 ### Error Handling
@@ -456,14 +499,23 @@ The application will:
 ## Database Schema
 
 Key relationships:
-- Observations reference: Sessions, Objects, Cameras, Telescopes, Filters
-- Filters reference: Filter Types
+- Observations reference: Sessions, Objects, Cameras, Telescopes, Filters (via INTEGER foreign keys)
+- Filters reference: Filter Types (via INTEGER filter_type_id)
 - All entities have auto-incrementing integer primary keys
-- Foreign key constraints ensure referential integrity
+- Foreign key constraints enforce referential integrity at database level
+- Database queries use JOINs to retrieve display names while maintaining ID-based relationships
+
+### Foreign Key Architecture
+- **filters.filter_type_id** → filter_types.id (INTEGER)
+- **observations.session_id** → sessions.id (INTEGER)
+- **observations.object_id** → objects.id (INTEGER)
+- **observations.camera_id** → cameras.id (INTEGER)
+- **observations.telescope_id** → telescopes.id (INTEGER)
+- **observations.filter_id** → filters.id (INTEGER)
 
 ### Statistics Queries
-- `get_object_stats()`: Aggregates observations by object name and filter type, calculating cumulative total exposure for each combination
-- `get_monthly_stats()`: Aggregates observations by month (from session dates), calculating cumulative total exposure per month
+- `get_object_stats()`: Aggregates observations by object name and filter type using JOINs, calculating cumulative total exposure for each combination
+- `get_monthly_stats()`: Aggregates observations by month (from session dates) using JOINs, calculating cumulative total exposure per month
 
 ## Best Practices for Modifications
 

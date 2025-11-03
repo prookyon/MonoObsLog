@@ -51,7 +51,7 @@ class ObservationsTabManager:
         # Store references
         self.observations_table = observation_widget.findChild(QTableWidget, "observationsTable")
         self.observation_filter_list_view = observation_widget.findChild(QWidget, "observationFilterListView")
-        self.session_id_combo_box = observation_widget.findChild(QWidget, "sessionIdComboBox")
+        self.session_name_combo_box = observation_widget.findChild(QWidget, "sessionNameComboBox")
         self.object_combo_box = observation_widget.findChild(QWidget, "objectComboBox")
         self.camera_combo_box = observation_widget.findChild(QWidget, "cameraComboBox")
         self.telescope_combo_box = observation_widget.findChild(QWidget, "telescopeComboBox")
@@ -84,7 +84,7 @@ class ObservationsTabManager:
         
         # Hide ID column
         self.observations_table.setColumnHidden(0, True)
-        self.observations_table.setColumnWidth(1, 100)  # Session ID
+        self.observations_table.setColumnWidth(1, 100)  # Session Name
         self.observations_table.setColumnWidth(2, 80)   # Date
         self.observations_table.setColumnWidth(3, 100)  # Object
         self.observations_table.setColumnWidth(4, 100)  # Camera
@@ -102,37 +102,37 @@ class ObservationsTabManager:
         self.update_filter_list()
     
     def update_observation_combos(self):
-        """Update all combo boxes in the observations tab."""
+        """Update all combo boxes in the observations tab, storing IDs."""
         try:
-            # Update Session ID combo
+            # Update Session combo - store IDs
             sessions = self.db.get_all_sessions()
-            self.session_id_combo_box.clear()
+            self.session_name_combo_box.clear()
             for session in sessions:
-                self.session_id_combo_box.addItem(session['session_id'])
+                self.session_name_combo_box.addItem(session['name'], session['id'])
 
-            # Update Object combo
+            # Update Object combo - store IDs
             objects = self.db.get_all_objects()
             self.object_combo_box.clear()
             for obj in objects:
-                self.object_combo_box.addItem(obj['name'])
+                self.object_combo_box.addItem(obj['name'], obj['id'])
 
-            # Update Camera combo
+            # Update Camera combo - store IDs
             cameras = self.db.get_all_cameras()
             self.camera_combo_box.clear()
             for camera in cameras:
-                self.camera_combo_box.addItem(camera['name'])
+                self.camera_combo_box.addItem(camera['name'], camera['id'])
 
-            # Update Telescope combo
+            # Update Telescope combo - store IDs
             telescopes = self.db.get_all_telescopes()
             self.telescope_combo_box.clear()
             for telescope in telescopes:
-                self.telescope_combo_box.addItem(telescope['name'])
+                self.telescope_combo_box.addItem(telescope['name'], telescope['id'])
 
-            # Update Filter combo
+            # Update Filter combo - store IDs
             filters = self.db.get_all_filters()
             self.filter_combo_box.clear()
             for filt in filters:
-                self.filter_combo_box.addItem(filt['name'])
+                self.filter_combo_box.addItem(filt['name'], filt['id'])
         except Exception as e:
             QMessageBox.critical(self.parent, 'Error', f'Failed to update observation combos: {str(e)}')
 
@@ -170,7 +170,8 @@ class ObservationsTabManager:
                         angular_sep = "N/A"
 
                 self.observations_table.setItem(row, 0, QTableWidgetItem(str(obs['id'])))
-                self.observations_table.setItem(row, 1, QTableWidgetItem(obs['session_id']))
+                # Display session_name (from JOIN) instead of session_id
+                self.observations_table.setItem(row, 1, QTableWidgetItem(obs['session_name']))
                 self.observations_table.setItem(row, 2, QTableWidgetItem(obs['start_date']))
                 self.observations_table.setItem(row, 3, QTableWidgetItem(obs['object_name']))
                 self.observations_table.setItem(row, 4, QTableWidgetItem(obs['camera_name']))
@@ -210,16 +211,17 @@ class ObservationsTabManager:
     
     def add_observation(self):
         """Add a new observation to the database."""
-        session_id = self.session_id_combo_box.currentText()
-        object_name = self.object_combo_box.currentText()
-        camera_name = self.camera_combo_box.currentText()
-        telescope_name = self.telescope_combo_box.currentText()
-        filter_name = self.filter_combo_box.currentText()
+        session_id = self.session_name_combo_box.currentData()
+        object_id = self.object_combo_box.currentData()
+        camera_id = self.camera_combo_box.currentData()
+        telescope_id = self.telescope_combo_box.currentData()
+        filter_id = self.filter_combo_box.currentData()
         image_count = self.image_count_spin_box.value()
         exposure_length = self.exposure_length_spin_box.value()
         comments = self.comments_line_edit.text().strip()
         
-        if not all([session_id, object_name, camera_name, telescope_name, filter_name]):
+        if not all([session_id is not None, object_id is not None, camera_id is not None, 
+                   telescope_id is not None, filter_id is not None]):
             QMessageBox.warning(self.parent, 'Warning', 'Please select all required fields.')
             return
         
@@ -231,8 +233,8 @@ class ObservationsTabManager:
             return
         
         try:
-            self.db.add_observation(session_id, object_name, camera_name, telescope_name,
-                                    filter_name, image_count, exposure_length, comments)
+            self.db.add_observation(session_id, object_id, camera_id, telescope_id,
+                                    filter_id, image_count, exposure_length, comments)
             self.image_count_spin_box.setValue(0)
             self.exposure_length_spin_box.setValue(0)
             self.comments_line_edit.clear()
@@ -240,7 +242,7 @@ class ObservationsTabManager:
             current_filter = self.get_current_filter()
             self.load_observations(current_filter)
             self.update_filter_list()  # Update filter list in case new object was added
-            self.statusbar.showMessage(f'Added observation for {object_name}')
+            self.statusbar.showMessage(f'Added observation')
         except Exception as e:
             QMessageBox.critical(self.parent, 'Error', f'Failed to add observation: {str(e)}')
     
@@ -254,34 +256,39 @@ class ObservationsTabManager:
         
         row = self.observations_table.currentRow()
         observation_id = int(self.observations_table.item(row, 0).text())
-        current_session_id = self.observations_table.item(row, 1).text()
-        current_object = self.observations_table.item(row, 3).text()
-        current_camera = self.observations_table.item(row, 4).text()
-        current_telescope = self.observations_table.item(row, 5).text()
-        current_filter = self.observations_table.item(row, 6).text()
-        current_image_count = int(self.observations_table.item(row, 7).text())
-        current_exposure = int(self.observations_table.item(row, 8).text())
-        current_comments = self.observations_table.item(row, 12).text()
         
-        # Get available options
-        sessions = [s['session_id'] for s in self.db.get_all_sessions()]
-        objects = [o['name'] for o in self.db.get_all_objects()]
-        cameras = [c['name'] for c in self.db.get_all_cameras()]
-        telescopes = [t['name'] for t in self.db.get_all_telescopes()]
-        filters = [f['name'] for f in self.db.get_all_filters()]
+        # Get the observation data from database to get IDs
+        all_observations = self.db.get_all_observations()
+        current_obs = None
+        for obs in all_observations:
+            if obs['id'] == observation_id:
+                current_obs = obs
+                break
+        
+        if not current_obs:
+            QMessageBox.warning(self.parent, 'Warning', 'Could not find observation.')
+            return
+        
+        # Get available options as full dicts with IDs
+        sessions = self.db.get_all_sessions()
+        objects = self.db.get_all_objects()
+        cameras = self.db.get_all_cameras()
+        telescopes = self.db.get_all_telescopes()
+        filters = self.db.get_all_filters()
         
         dialog = EditObservationDialog(
-            current_session_id, current_object, current_camera, current_telescope,
-            current_filter, current_image_count, current_exposure, current_comments,
+            current_obs['session_id'], current_obs['object_id'], current_obs['camera_id'], 
+            current_obs['telescope_id'], current_obs['filter_id'], 
+            current_obs['image_count'], current_obs['exposure_length'], current_obs['comments'],
             sessions, objects, cameras, telescopes, filters, self.parent
         )
         
         if dialog.exec():
-            session_id, object_name, camera_name, telescope_name, filter_name, \
+            session_id, object_id, camera_id, telescope_id, filter_id, \
                 image_count, exposure_length, comments = dialog.get_values()
             try:
-                self.db.update_observation(observation_id, session_id, object_name,
-                                           camera_name, telescope_name, filter_name,
+                self.db.update_observation(observation_id, session_id, object_id,
+                                           camera_id, telescope_id, filter_id,
                                            image_count, exposure_length, comments)
                 # Reload with current filter
                 current_filter = self.get_current_filter()
@@ -387,7 +394,7 @@ class ObservationsTabManager:
 
             # Define headers in same order as table columns (excluding ID)
             headers = [
-                'Session ID', 'Date', 'Object', 'Camera', 'Telescope', 'Filter',
+                'Session Name', 'Date', 'Object', 'Camera', 'Telescope', 'Filter',
                 'Images', 'Exposure (s)', 'Total Exposure (s)', 'Moon Illumination (%)',
                 'Angular Separation', 'Comments'
             ]
@@ -416,7 +423,7 @@ class ObservationsTabManager:
 
                 # Write row data in same order as headers
                 row_data = [
-                    obs['session_id'],
+                    obs['session_name'],
                     datetime.datetime.strptime(obs['start_date'],"%Y-%m-%d"),
                     obs['object_name'],
                     obs['camera_name'],
@@ -529,7 +536,7 @@ class ObservationsTabManager:
                     angular_warning_class = "angular-warning"
 
                 table_rows += f"""                <tr>
-                    <td>{obs['session_id']}</td>
+                    <td>{obs['session_name']}</td>
                     <td>{obs['start_date']}</td>
                     <td>{obs['object_name']}</td>
                     <td>{obs['camera_name']}</td>

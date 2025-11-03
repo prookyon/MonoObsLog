@@ -27,7 +27,7 @@ class Database:
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS sessions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                session_id TEXT NOT NULL UNIQUE,
+                name TEXT NOT NULL UNIQUE,
                 start_date TEXT NOT NULL,
                 moon_illumination REAL,
                 moon_ra REAL,
@@ -60,8 +60,8 @@ class Database:
             CREATE TABLE IF NOT EXISTS filters (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE,
-                type TEXT NOT NULL,
-                FOREIGN KEY (type) REFERENCES filter_types(name)
+                filter_type_id INTEGER NOT NULL,
+                FOREIGN KEY (filter_type_id) REFERENCES filter_types(id)
             )
         """)
         
@@ -80,20 +80,20 @@ class Database:
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS observations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                session_id TEXT NOT NULL,
-                object_name TEXT NOT NULL,
-                camera_name TEXT NOT NULL,
-                telescope_name TEXT NOT NULL,
-                filter_name TEXT NOT NULL,
+                session_id INTEGER NOT NULL,
+                object_id INTEGER NOT NULL,
+                camera_id INTEGER NOT NULL,
+                telescope_id INTEGER NOT NULL,
+                filter_id INTEGER NOT NULL,
                 image_count INTEGER NOT NULL,
                 exposure_length INTEGER NOT NULL,
                 total_exposure INTEGER NOT NULL,
                 comments TEXT,
-                FOREIGN KEY (session_id) REFERENCES sessions(session_id),
-                FOREIGN KEY (object_name) REFERENCES objects(name),
-                FOREIGN KEY (camera_name) REFERENCES cameras(name),
-                FOREIGN KEY (telescope_name) REFERENCES telescopes(name),
-                FOREIGN KEY (filter_name) REFERENCES filters(name)
+                FOREIGN KEY (session_id) REFERENCES sessions(id),
+                FOREIGN KEY (object_id) REFERENCES objects(id),
+                FOREIGN KEY (camera_id) REFERENCES cameras(id),
+                FOREIGN KEY (telescope_id) REFERENCES telescopes(id),
+                FOREIGN KEY (filter_id) REFERENCES filters(id)
             )
         """)
         
@@ -164,26 +164,26 @@ class Database:
         self.connection.close()
     # ==================== Session Methods ====================
     
-    def add_session(self, session_id: str, start_date: str, moon_illumination: float = None, moon_ra: float = None, moon_dec: float = None) -> int:
+    def add_session(self, name: str, start_date: str, moon_illumination: float = None, moon_ra: float = None, moon_dec: float = None) -> int:
         """Add a new session to the database."""
         self.cursor.execute(
-            "INSERT INTO sessions (session_id, start_date, moon_illumination, moon_ra, moon_dec) VALUES (?, ?, ?, ?, ?)",
-            (session_id, start_date, moon_illumination, moon_ra, moon_dec)
+            "INSERT INTO sessions (name, start_date, moon_illumination, moon_ra, moon_dec) VALUES (?, ?, ?, ?, ?)",
+            (name, start_date, moon_illumination, moon_ra, moon_dec)
         )
         self.connection.commit()
         return self.cursor.lastrowid
     
     def get_all_sessions(self) -> List[Dict]:
         """Get all sessions from the database."""
-        self.cursor.execute("SELECT id, session_id, start_date, moon_illumination, moon_ra, moon_dec FROM sessions ORDER BY id DESC")
+        self.cursor.execute("SELECT id, name, start_date, moon_illumination, moon_ra, moon_dec FROM sessions ORDER BY id DESC")
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
     
-    def update_session(self, session_id: int, new_session_id: str, start_date: str, moon_illumination: float = None, moon_ra: float = None, moon_dec: float = None) -> bool:
+    def update_session(self, session_id: int, name: str, start_date: str, moon_illumination: float = None, moon_ra: float = None, moon_dec: float = None) -> bool:
         """Update an existing session."""
         self.cursor.execute(
-            "UPDATE sessions SET session_id = ?, start_date = ?, moon_illumination = ?, moon_ra = ?, moon_dec = ? WHERE id = ?",
-            (new_session_id, start_date, moon_illumination, moon_ra, moon_dec, session_id)
+            "UPDATE sessions SET name = ?, start_date = ?, moon_illumination = ?, moon_ra = ?, moon_dec = ? WHERE id = ?",
+            (name, start_date, moon_illumination, moon_ra, moon_dec, session_id)
         )
         self.connection.commit()
         return self.cursor.rowcount > 0
@@ -194,21 +194,21 @@ class Database:
         self.connection.commit()
         return self.cursor.rowcount > 0
 
-    def session_id_exists(self, session_id: str, exclude_id: Optional[int] = None) -> bool:
-        """Check if a session ID already exists in the database.
+    def session_name_exists(self, name: str, exclude_id: Optional[int] = None) -> bool:
+        """Check if a session name already exists in the database.
 
         Args:
-            session_id: The session ID to check
+            name: The session name to check
             exclude_id: Optional internal ID to exclude from the check (for updates)
 
         Returns:
-            True if the session ID exists, False otherwise
+            True if the session name exists, False otherwise
         """
-        query = "SELECT id FROM sessions WHERE session_id = ?"
-        params = (session_id,)
+        query = "SELECT id FROM sessions WHERE name = ?"
+        params = (name,)
         if exclude_id is not None:
             query += " AND id != ?"
-            params = (session_id, exclude_id)
+            params = (name, exclude_id)
         self.cursor.execute(query, params)
         return self.cursor.fetchone() is not None
 
@@ -368,26 +368,31 @@ class Database:
     
     # ==================== Filter Methods ====================
     
-    def add_filter(self, name: str, filter_type: str) -> int:
+    def add_filter(self, name: str, filter_type_id: int) -> int:
         """Add a new filter to the database."""
         self.cursor.execute(
-            "INSERT INTO filters (name, type) VALUES (?, ?)",
-            (name, filter_type)
+            "INSERT INTO filters (name, filter_type_id) VALUES (?, ?)",
+            (name, filter_type_id)
         )
         self.connection.commit()
         return self.cursor.lastrowid
     
     def get_all_filters(self) -> List[Dict]:
-        """Get all filters from the database."""
-        self.cursor.execute("SELECT id, name, type FROM filters ORDER BY id")
+        """Get all filters from the database with filter type names via JOIN."""
+        self.cursor.execute("""
+            SELECT f.id, f.name, ft.name as type, f.filter_type_id
+            FROM filters f
+            JOIN filter_types ft ON f.filter_type_id = ft.id
+            ORDER BY f.id
+        """)
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
     
-    def update_filter(self, filter_id: int, name: str, filter_type: str) -> bool:
+    def update_filter(self, filter_id: int, name: str, filter_type_id: int) -> bool:
         """Update an existing filter."""
         self.cursor.execute(
-            "UPDATE filters SET name = ?, type = ? WHERE id = ?",
-            (name, filter_type, filter_id)
+            "UPDATE filters SET name = ?, filter_type_id = ? WHERE id = ?",
+            (name, filter_type_id, filter_id)
         )
         self.connection.commit()
         return self.cursor.rowcount > 0
@@ -431,47 +436,52 @@ class Database:
         return self.cursor.rowcount > 0
     # ==================== Observation Methods ====================
     
-    def add_observation(self, session_id: str, object_name: str, camera_name: str,
-                       telescope_name: str, filter_name: str, image_count: int,
+    def add_observation(self, session_id: int, object_id: int, camera_id: int,
+                       telescope_id: int, filter_id: int, image_count: int,
                        exposure_length: int, comments: str) -> int:
         """Add a new observation to the database."""
         total_exposure = image_count * exposure_length
         self.cursor.execute(
             """INSERT INTO observations
-               (session_id, object_name, camera_name, telescope_name, filter_name,
+               (session_id, object_id, camera_id, telescope_id, filter_id,
                 image_count, exposure_length, total_exposure, comments)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (session_id, object_name, camera_name, telescope_name, filter_name,
+            (session_id, object_id, camera_id, telescope_id, filter_id,
              image_count, exposure_length, total_exposure, comments)
         )
         self.connection.commit()
         return self.cursor.lastrowid
     
     def get_all_observations(self) -> List[Dict]:
-        """Get all observations from the database."""
+        """Get all observations from the database with all related data via JOINs."""
         self.cursor.execute("""
-            SELECT o.id, o.session_id, o.object_name, o.camera_name, o.telescope_name,
-                   o.filter_name, o.image_count, o.exposure_length, o.total_exposure, o.comments,
-                   s.moon_illumination, s.moon_ra, s.moon_dec, s.start_date, obj.ra, obj.dec
+            SELECT o.id, s.name as session_name, obj.name as object_name,
+                   c.name as camera_name, t.name as telescope_name,
+                   f.name as filter_name, o.image_count, o.exposure_length, o.total_exposure, o.comments,
+                   s.moon_illumination, s.moon_ra, s.moon_dec, s.start_date, obj.ra, obj.dec,
+                   o.session_id, o.object_id, o.camera_id, o.telescope_id, o.filter_id
             FROM observations o
-            JOIN sessions s ON o.session_id = s.session_id
-            JOIN objects obj ON o.object_name = obj.name
+            JOIN sessions s ON o.session_id = s.id
+            JOIN objects obj ON o.object_id = obj.id
+            JOIN cameras c ON o.camera_id = c.id
+            JOIN telescopes t ON o.telescope_id = t.id
+            JOIN filters f ON o.filter_id = f.id
             ORDER BY o.id DESC
         """)
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
     
-    def update_observation(self, observation_id: int, session_id: str, object_name: str,
-                          camera_name: str, telescope_name: str, filter_name: str,
+    def update_observation(self, observation_id: int, session_id: int, object_id: int,
+                          camera_id: int, telescope_id: int, filter_id: int,
                           image_count: int, exposure_length: int, comments: str) -> bool:
         """Update an existing observation."""
         total_exposure = image_count * exposure_length
         self.cursor.execute(
             """UPDATE observations
-               SET session_id = ?, object_name = ?, camera_name = ?, telescope_name = ?,
-                   filter_name = ?, image_count = ?, exposure_length = ?, total_exposure = ?, comments = ?
+               SET session_id = ?, object_id = ?, camera_id = ?, telescope_id = ?,
+                   filter_id = ?, image_count = ?, exposure_length = ?, total_exposure = ?, comments = ?
                WHERE id = ?""",
-            (session_id, object_name, camera_name, telescope_name, filter_name,
+            (session_id, object_id, camera_id, telescope_id, filter_id,
              image_count, exposure_length, total_exposure, comments, observation_id)
         )
         self.connection.commit()
@@ -491,13 +501,15 @@ class Database:
         """
         self.cursor.execute("""
             SELECT
-                o.object_name,
-                f.type as filter_type,
+                obj.name as object_name,
+                ft.name as filter_type,
                 SUM(o.total_exposure) as total_exposure
             FROM observations o
-            JOIN filters f ON o.filter_name = f.name
-            GROUP BY o.object_name, f.type
-            ORDER BY o.object_name, f.type
+            JOIN objects obj ON o.object_id = obj.id
+            JOIN filters f ON o.filter_id = f.id
+            JOIN filter_types ft ON f.filter_type_id = ft.id
+            GROUP BY obj.name, ft.name
+            ORDER BY obj.name, ft.name
         """)
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
@@ -513,7 +525,7 @@ class Database:
                 strftime('%Y-%m', s.start_date) as year_month,
                 SUM(o.total_exposure)/3600.0 as total_exposure
             FROM observations o
-            JOIN sessions s ON o.session_id = s.session_id
+            JOIN sessions s ON o.session_id = s.id
             GROUP BY strftime('%Y-%m', s.start_date)
             ORDER BY year_month
         """)

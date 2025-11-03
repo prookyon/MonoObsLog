@@ -57,12 +57,13 @@ class FiltersTabManager:
         self.update_filter_type_combo()
     
     def update_filter_type_combo(self):
-        """Update the filter type combo box with current filter types."""
+        """Update the filter type combo box with current filter types, storing IDs."""
         try:
             filter_types = self.db.get_all_filter_types()
             self.filter_type_combo_box.clear()
             for ft in filter_types:
-                self.filter_type_combo_box.addItem(ft['name'])
+                # Store both name (display) and ID (data)
+                self.filter_type_combo_box.addItem(ft['name'], ft['id'])
         except Exception as e:
             QMessageBox.critical(self.parent, 'Error', f'Failed to update filter types: {str(e)}')
     
@@ -75,6 +76,7 @@ class FiltersTabManager:
             for row, filt in enumerate(filters):
                 self.filters_table.setItem(row, 0, QTableWidgetItem(str(filt['id'])))
                 self.filters_table.setItem(row, 1, QTableWidgetItem(filt['name']))
+                # Display filter type name (from JOIN)
                 self.filters_table.setItem(row, 2, QTableWidgetItem(filt['type']))
             
             self.statusbar.showMessage(f'Loaded {len(filters)} filter(s)')
@@ -84,13 +86,13 @@ class FiltersTabManager:
     def add_filter(self):
         """Add a new filter to the database."""
         name = self.filter_name_line_edit.text().strip()
-        filter_type = self.filter_type_combo_box.currentText()
+        filter_type_id = self.filter_type_combo_box.currentData()
 
         if not name:
             QMessageBox.warning(self.parent, 'Warning', 'Please enter a filter name.')
             return
 
-        if not filter_type:
+        if filter_type_id is None:
             QMessageBox.warning(self.parent, 'Warning', 'Please select a filter type.')
             return
 
@@ -100,7 +102,7 @@ class FiltersTabManager:
             return
 
         try:
-            self.db.add_filter(name, filter_type)
+            self.db.add_filter(name, filter_type_id)
             self.filter_name_line_edit.clear()
             self.load_filters()
             self.statusbar.showMessage(f'Added filter: {name}')
@@ -118,14 +120,21 @@ class FiltersTabManager:
         row = self.filters_table.currentRow()
         filter_id = int(self.filters_table.item(row, 0).text())
         current_name = self.filters_table.item(row, 1).text()
-        current_type = self.filters_table.item(row, 2).text()
+        current_type_name = self.filters_table.item(row, 2).text()
 
-        # Get available filter types
-        filter_types = [ft['name'] for ft in self.db.get_all_filter_types()]
+        # Get available filter types as list of dicts
+        filter_types_dict = self.db.get_all_filter_types()
+        
+        # Find the ID of the current filter type
+        current_filter_type_id = None
+        for ft in filter_types_dict:
+            if ft['name'] == current_type_name:
+                current_filter_type_id = ft['id']
+                break
 
-        dialog = EditFilterDialog(current_name, current_type, filter_types, self.parent)
+        dialog = EditFilterDialog(current_name, current_filter_type_id, filter_types_dict, self.parent)
         if dialog.exec():
-            name, filter_type = dialog.get_values()
+            name, filter_type_id = dialog.get_values()
 
             # Check for duplicate filter name, excluding the current filter
             if self.db.filter_name_exists(name, exclude_id=filter_id):
@@ -133,7 +142,7 @@ class FiltersTabManager:
                 return
 
             try:
-                self.db.update_filter(filter_id, name, filter_type)
+                self.db.update_filter(filter_id, name, filter_type_id)
                 self.load_filters()
                 self.statusbar.showMessage(f'Updated filter ID {filter_id}')
             except Exception as e:

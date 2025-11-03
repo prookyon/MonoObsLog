@@ -14,14 +14,14 @@
    <item>
     <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,0,1,0,1,0,1">
      <item row="0" column="0">
-      <widget class="QLabel" name="sessionIdLabel">
+      <widget class="QLabel" name="sessionNameLabel">
        <property name="text">
-        <string>Session ID:</string>
+        <string>Session Name:</string>
        </property>
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QComboBox" name="sessionIdComboBox"/>
+      <widget class="QComboBox" name="sessionNameComboBox"/>
      </item>
      <item row="0" column="2">
       <widget class="QLabel" name="cameraLabel">
@@ -167,7 +167,7 @@
        </column>
        <column>
         <property name="text">
-         <string>Session ID</string>
+         <string>Session Name</string>
         </property>
        </column>
        <column>

@@ -10,18 +10,18 @@ from PyQt6.QtCore import QDate
 class EditSessionDialog(QDialog):
     """Dialog for editing session data."""
     
-    def __init__(self, session_id, start_date, parent=None):
+    def __init__(self, name, start_date, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Edit Session")
         
         layout = QFormLayout()
         
-        self.session_id_edit = QLineEdit(session_id)
+        self.name_edit = QLineEdit(name)
         self.start_date_edit = QDateEdit()
         self.start_date_edit.setCalendarPopup(True)
         self.start_date_edit.setDate(QDate.fromString(start_date, "yyyy-MM-dd"))
         
-        layout.addRow("Session ID:", self.session_id_edit)
+        layout.addRow("Session Name:", self.name_edit)
         layout.addRow("Start Date:", self.start_date_edit)
         
         buttons = QDialogButtonBox(
@@ -35,7 +35,7 @@ class EditSessionDialog(QDialog):
     
     def get_values(self):
         """Return the edited values."""
-        return self.session_id_edit.text(), self.start_date_edit.date().toString("yyyy-MM-dd")
+        return self.name_edit.text(), self.start_date_edit.date().toString("yyyy-MM-dd")
 
 
 class EditCameraDialog(QDialog):
@@ -89,7 +89,7 @@ class EditCameraDialog(QDialog):
 class EditFilterDialog(QDialog):
     """Dialog for editing filter data."""
     
-    def __init__(self, name, filter_type, filter_types, parent=None):
+    def __init__(self, name, filter_type_id, filter_types_dict, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Edit Filter")
         
@@ -97,8 +97,16 @@ class EditFilterDialog(QDialog):
         
         self.name_edit = QLineEdit(name)
         self.type_combo = QComboBox()
-        self.type_combo.addItems(filter_types)
-        self.type_combo.setCurrentText(filter_type)
+        
+        # Populate combo box with filter type names and store IDs
+        for ft in filter_types_dict:
+            self.type_combo.addItem(ft['name'], ft['id'])
+        
+        # Set current selection by ID
+        if filter_type_id is not None:
+            index = self.type_combo.findData(filter_type_id)
+            if index >= 0:
+                self.type_combo.setCurrentIndex(index)
         
         layout.addRow("Name:", self.name_edit)
         layout.addRow("Type:", self.type_combo)
@@ -113,8 +121,8 @@ class EditFilterDialog(QDialog):
         self.setLayout(layout)
     
     def get_values(self):
-        """Return the edited values."""
-        return self.name_edit.text(), self.type_combo.currentText()
+        """Return the edited values (name and filter_type_id)."""
+        return self.name_edit.text(), self.type_combo.currentData()
 
 
 class EditTelescopeDialog(QDialog):
@@ -165,33 +173,58 @@ class EditTelescopeDialog(QDialog):
 class EditObservationDialog(QDialog):
     """Dialog for editing observation data."""
     
-    def __init__(self, session_id, object_name, camera_name, telescope_name,
-                 filter_name, image_count, exposure_length, comments,
+    def __init__(self, session_id, object_id, camera_id, telescope_id,
+                 filter_id, image_count, exposure_length, comments,
                  sessions, objects, cameras, telescopes, filters, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Edit Observation")
         
         layout = QFormLayout()
         
+        # Session combo - store IDs
         self.session_combo = QComboBox()
-        self.session_combo.addItems(sessions)
-        self.session_combo.setCurrentText(session_id)
+        for session in sessions:
+            self.session_combo.addItem(session['name'], session['id'])
+        if session_id is not None:
+            index = self.session_combo.findData(session_id)
+            if index >= 0:
+                self.session_combo.setCurrentIndex(index)
         
+        # Object combo - store IDs
         self.object_combo = QComboBox()
-        self.object_combo.addItems(objects)
-        self.object_combo.setCurrentText(object_name)
+        for obj in objects:
+            self.object_combo.addItem(obj['name'], obj['id'])
+        if object_id is not None:
+            index = self.object_combo.findData(object_id)
+            if index >= 0:
+                self.object_combo.setCurrentIndex(index)
         
+        # Camera combo - store IDs
         self.camera_combo = QComboBox()
-        self.camera_combo.addItems(cameras)
-        self.camera_combo.setCurrentText(camera_name)
+        for camera in cameras:
+            self.camera_combo.addItem(camera['name'], camera['id'])
+        if camera_id is not None:
+            index = self.camera_combo.findData(camera_id)
+            if index >= 0:
+                self.camera_combo.setCurrentIndex(index)
         
+        # Telescope combo - store IDs
         self.telescope_combo = QComboBox()
-        self.telescope_combo.addItems(telescopes)
-        self.telescope_combo.setCurrentText(telescope_name)
+        for telescope in telescopes:
+            self.telescope_combo.addItem(telescope['name'], telescope['id'])
+        if telescope_id is not None:
+            index = self.telescope_combo.findData(telescope_id)
+            if index >= 0:
+                self.telescope_combo.setCurrentIndex(index)
         
+        # Filter combo - store IDs
         self.filter_combo = QComboBox()
-        self.filter_combo.addItems(filters)
-        self.filter_combo.setCurrentText(filter_name)
+        for filt in filters:
+            self.filter_combo.addItem(filt['name'], filt['id'])
+        if filter_id is not None:
+            index = self.filter_combo.findData(filter_id)
+            if index >= 0:
+                self.filter_combo.setCurrentIndex(index)
         
         self.image_count_spin = QSpinBox()
         self.image_count_spin.setMaximum(99999)
@@ -203,7 +236,7 @@ class EditObservationDialog(QDialog):
         
         self.comments_edit = QLineEdit(comments)
         
-        layout.addRow("Session ID:", self.session_combo)
+        layout.addRow("Session:", self.session_combo)
         layout.addRow("Object:", self.object_combo)
         layout.addRow("Camera:", self.camera_combo)
         layout.addRow("Telescope:", self.telescope_combo)
@@ -222,13 +255,13 @@ class EditObservationDialog(QDialog):
         self.setLayout(layout)
     
     def get_values(self):
-        """Return the edited values."""
+        """Return the edited values (all as IDs)."""
         return (
-            self.session_combo.currentText(),
-            self.object_combo.currentText(),
-            self.camera_combo.currentText(),
-            self.telescope_combo.currentText(),
-            self.filter_combo.currentText(),
+            self.session_combo.currentData(),
+            self.object_combo.currentData(),
+            self.camera_combo.currentData(),
+            self.telescope_combo.currentData(),
+            self.filter_combo.currentData(),
             self.image_count_spin.value(),
             self.exposure_spin.value(),
             self.comments_edit.text()
