@@ -36,6 +36,8 @@ class SettingsTabManager:
         # Store references
         self.moon_illumination_spin_box = settings_widget.findChild(QWidget, "moonIlluminationSpinBox")
         self.moon_separation_spin_box = settings_widget.findChild(QWidget, "moonSeparationSpinBox")
+        self.latitude_spin_box = settings_widget.findChild(QWidget, "latitudeSpinBox")
+        self.longitude_spin_box = settings_widget.findChild(QWidget, "longitudeSpinBox")
         self.save_button = settings_widget.findChild(QWidget, "saveButton")
 
         # Connect signals
@@ -49,9 +51,13 @@ class SettingsTabManager:
         try:
             moon_illumination = settings.get_moon_illumination_warning()
             moon_separation = settings.get_moon_angular_separation_warning()
+            latitude = settings.get_latitude()
+            longitude = settings.get_longitude()
 
             self.moon_illumination_spin_box.setValue(moon_illumination)
             self.moon_separation_spin_box.setValue(moon_separation)
+            self.latitude_spin_box.setValue(latitude)
+            self.longitude_spin_box.setValue(longitude)
 
             self.statusbar.showMessage('Settings loaded')
         except Exception as e:
@@ -62,9 +68,13 @@ class SettingsTabManager:
         try:
             moon_illumination = self.moon_illumination_spin_box.value()
             moon_separation = self.moon_separation_spin_box.value()
+            latitude = self.latitude_spin_box.value()
+            longitude = self.longitude_spin_box.value()
 
             settings.set_moon_illumination_warning(moon_illumination)
             settings.set_moon_angular_separation_warning(moon_separation)
+            settings.set_latitude(latitude)
+            settings.set_longitude(longitude)
 
             # Refresh observations tab to apply new settings
             if hasattr(self.main_window, 'observations_tab'):

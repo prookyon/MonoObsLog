@@ -5,7 +5,9 @@ SETTINGS_FILE = 'settings.json'
 
 DEFAULT_SETTINGS = {
     'moon_illumination_warning_percent': 75,
-    'moon_angular_separation_warning_deg': 60
+    'moon_angular_separation_warning_deg': 60,
+    'latitude': 0.0,
+    'longitude': 0.0
     # Note: database_path intentionally has no default - user must select on first run
 }
 
@@ -47,6 +49,26 @@ def set_moon_angular_separation_warning(value):
     """Set moon angular separation warning degrees."""
     settings = load_settings()
     settings['moon_angular_separation_warning_deg'] = value
+    save_settings(settings)
+
+def get_latitude():
+    """Get latitude."""
+    return load_settings()['latitude']
+
+def get_longitude():
+    """Get longitude."""
+    return load_settings()['longitude']
+
+def set_latitude(value):
+    """Set latitude."""
+    settings = load_settings()
+    settings['latitude'] = value
+    save_settings(settings)
+
+def set_longitude(value):
+    """Set longitude."""
+    settings = load_settings()
+    settings['longitude'] = value
     save_settings(settings)
 
 def get_database_path():
