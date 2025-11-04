@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>296</width>
+    <width>654</width>
     <height>274</height>
    </rect>
   </property>
@@ -74,6 +74,11 @@
      <column>
       <property name="text">
        <string>Dec (°)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Transit</string>
       </property>
      </column>
     </widget>

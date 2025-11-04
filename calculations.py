@@ -4,6 +4,7 @@ from astropy.coordinates import EarthLocation
 import astropy.units as u
 import numpy as np
 from datetime import datetime, timezone
+from astroplan import Observer, FixedTarget
 
 
 def calculate_moon_data(date: str) -> tuple[float, float, float]:
@@ -128,3 +129,54 @@ def lookup_object_coordinates(object_name: str) -> tuple[float, float]:
             raise Exception(f"Network error while looking up '{object_name}'. Please check your internet connection and try again.")
         else:
             raise Exception(f"Failed to look up coordinates for '{object_name}': {error_msg}")
+
+
+
+def calculate_transit_time(ra_hours: float, dec_degrees: float,
+                          observer_lat: float = 0.0,
+                          observer_lon: float = 0.0,
+                          observer_elevation: float = 0.0 ) -> datetime:
+    """
+    Calculate the next transit time (meridian crossing) in UTC for a celestial object.
+
+    Parameters:
+    -----------
+    ra_hours : float
+        Right Ascension in decimal hours (0-24)
+        Example: 1.5 hours = 1h 30m
+    dec_degrees : float
+        Declination in decimal degrees (-90 to +90)
+        Example: 41.5 degrees = 41° 30'
+    observer_lat : float, optional
+        Observer latitude in degrees. Default is 0.0 (Equator)
+    observer_lon : float, optional
+        Observer longitude in degrees. Default is 0.0 (Prime Meridian)
+    
+    Returns:
+    --------
+    datetime : Transit time in UTC
+    """
+    
+    # Create observer location using astroplan
+    location = EarthLocation(lat=observer_lat*u.deg,
+                            lon=observer_lon*u.deg,
+                            height=observer_elevation*u.m)
+    observer = Observer(location=location)
+    
+    # create reference time
+    ref_time = Time.now()
+    
+    # Create target coordinates
+    # Convert RA from hours to degrees (1 hour = 15 degrees)
+    target_coord = SkyCoord(ra=ra_hours*15*u.deg, dec=dec_degrees*u.deg)
+    target = FixedTarget(coord=target_coord, name="target")
+    
+    # Calculate the next transit time after the reference time using astroplan
+    transit_time = observer.target_meridian_transit_time(
+        ref_time,
+        target,
+        which='next'
+    )
+    
+    # Return as datetime
+    return transit_time.datetime

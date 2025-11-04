@@ -85,3 +85,6 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Other
+settings.json

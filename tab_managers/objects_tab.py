@@ -1,11 +1,14 @@
 """Objects tab manager for the observation log application."""
 
 import os
+import datetime
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QInputDialog
 from PyQt6 import uic
 from dialogs import EditObjectDialog
 
 from utilities import NumericTableWidgetItem
+from calculations import calculate_transit_time
+import settings
 
 
 class ObjectsTabManager:
@@ -73,6 +76,11 @@ class ObjectsTabManager:
                 # Display Dec coordinate (or empty if None)
                 dec_text = f"{obj['dec']:.6f}°" if obj['dec'] is not None else ""
                 self.objects_table.setItem(row, 3, NumericTableWidgetItem(dec_text))
+
+                # Display transit time if both RA and Dec are available
+                if obj['ra'] is not None and obj['dec'] is not None:
+                    transit_time = calculate_transit_time(obj['ra'], obj['dec'], settings.get_latitude(), settings.get_longitude())
+                    self.objects_table.setItem(row, 4, QTableWidgetItem(transit_time.replace(tzinfo=datetime.UTC).astimezone().strftime('%H:%M')))
             
             self.statusbar.showMessage(f'Loaded {len(objects)} object(s)')
         except Exception as e:
