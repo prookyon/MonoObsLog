@@ -1,19 +1,29 @@
 <img src="images/icon.png" width="256">
 
-# MonoObsLog - Python Qt6 astrophotography logging application
+# MonoObsLog - astrophotography logging application
 
-Qt6-based desktop application for managing astrophotography observations with SQLite database storage.
+## ⚠️⚠️⚠️
+## This application is still under initial active development. Things can unexpectedly change and break.
+## No installer / compiled release is provided at this point - some Python knowledge is expected.
+## ⚠️⚠️⚠️
+
+Application for managing astrophotography observations with SQLite database storage.
 
 Special focus is on supporting mono workflows.
 
-A lot of the coding is done by using AI coding agents. I don't blindly trust what they spit out, but there certainly can be some weird choices in architecture and code logic.
+This was an Excel workbook, but it was too limiting and I did not want to start adding VBA code.
 
 ## Features
 
+- **Observation Log View**
+<img src="screenshots/observations.png">
+
 - **Object statistics**: Per filter-type exposure totals for each object.
+<img src="screenshots/object_stats.png">
+
 - **Monthly statisctis**: Cumulative observation hours per month.
 - **Moon data**: Illumination percentages and angular separation calculated for each observation (not intended to be super precise - just there to get a rough overview of potential data quality issues)
-- **Excel Export**: Observations can be exported as an Excel file.
+- **Export**: Observations can be exported as an Excel or HTML file.
 - **SQLite Storage**: All data persisted in a local SQLite database.
 - **Database backup**: Database is backed up weekly to a subfolder. The size is expected to be small so no automatic cleanup exists.
 
@@ -23,6 +33,7 @@ A lot of the coding is done by using AI coding agents. I don't blindly trust wha
 - PyQt6
 - matplotlib
 - astropy
+- astroplan
 
 ## Installation
 
@@ -62,7 +73,7 @@ This avoids the console window.
 ## Features by Tab
 
 ### Objects Tab
-- Supports querying location data from Simbad server. Or you can add the coordinates yourself. This is not required but needed for Moon angular separation calculations.
+- Supports querying location data from Simbad server. Or you can add the coordinates yourself. This is not required but needed for Moon angular separation calculations and altitude plot.
 
 ### Sessions Tab
 - Intended usage is to add sessions by the date of the evening before the session. (So if you started imaging after midnight enter the previous day) The logic for moon calculations is based on that. Why? Personal preference 🙂
@@ -81,3 +92,4 @@ This avoids the console window.
 - **UI Framework**: PyQt6
 - **Database**: SQLite3
 - **UI Design**: Qt Designer (.ui files)
+- **Coding**: Some of the code is written by using AI coding agents. I don't blindly trust what they spit out, but there certainly can be some weird choices in architecture and code logic. It's a hobby project so I appreciate the time it saves me.
