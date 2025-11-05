@@ -25,6 +25,7 @@ class EditSessionDialog(QDialog):
         layout.addRow("Session Name:", self.name_edit)
         layout.addRow("Start Date:", self.start_date_edit)
         layout.addRow("Comments:", self.comments_edit)
+        self.comments_edit.setMinimumWidth(300)
         
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel

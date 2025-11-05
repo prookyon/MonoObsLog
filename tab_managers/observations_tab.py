@@ -182,7 +182,7 @@ class ObservationsTabManager:
                 self.observations_table.setItem(row, 9, NumericTableWidgetItem(obs['total_exposure']))
 
                 # Moon Illumination column with conditional highlighting
-                moon_illumination_item = QTableWidgetItem(f"{obs['moon_illumination']:.0f}%" if obs['moon_illumination'] is not None else "")
+                moon_illumination_item = NumericTableWidgetItem(f"{obs['moon_illumination']:.0f}%" if obs['moon_illumination'] is not None else "")
                 moon_illumination_warning = settings.get_moon_illumination_warning()
                 if obs['moon_illumination'] is not None and obs['moon_illumination'] > moon_illumination_warning:
                     # For pastel: high value, low-to-medium saturation
@@ -193,7 +193,7 @@ class ObservationsTabManager:
                 self.observations_table.setItem(row, 10, moon_illumination_item)
 
                 # Angular Separation column with conditional highlighting
-                angular_sep_item = QTableWidgetItem(angular_sep)
+                angular_sep_item = NumericTableWidgetItem(angular_sep)
                 angular_sep_warning = settings.get_moon_angular_separation_warning()
                 if angular_sep_value is not None and angular_sep_value < angular_sep_warning:
                     # For pastel: high value, low-to-medium saturation
