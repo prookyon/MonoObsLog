@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QTableWidget
 from PyQt6.QtCore import QDate
 from PyQt6 import uic
 
+from database import Database
 from dialogs import EditSessionDialog
 from calculations import calculate_moon_data
 from utilities import NumericTableWidgetItem
@@ -14,7 +15,7 @@ from utilities import NumericTableWidgetItem
 class SessionsTabManager:
     """Manages the Sessions tab functionality."""
     
-    def __init__(self, parent, db, tab_widget, statusbar):
+    def __init__(self, parent, db: Database, tab_widget, statusbar):
         """
         Initialize the Sessions tab manager.
         
@@ -42,6 +43,7 @@ class SessionsTabManager:
         self.sessions_table = session_widget.findChild(QTableWidget, "sessionsTable")
         self.session_name_line_edit = session_widget.findChild(QWidget, "sessionNameLineEdit")
         self.start_date_edit = session_widget.findChild(QWidget, "startDateEdit")
+        self.comments_line_edit = session_widget.findChild(QWidget, "sessionCommentsLineEdit")
         self.add_session_button = session_widget.findChild(QWidget, "addSessionButton")
         self.edit_session_button = session_widget.findChild(QWidget, "editSessionButton")
         self.delete_session_button = session_widget.findChild(QWidget, "deleteSessionButton")
@@ -68,7 +70,7 @@ class SessionsTabManager:
     def load_sessions(self):
         """Load all sessions from database and display in table."""
         try:
-            sessions = self.db.get_all_sessions()
+            sessions = self.db.get_all_sessions_with_totals()
             self.sessions_table.setRowCount(len(sessions))
 
             for row, session in enumerate(sessions):
@@ -79,6 +81,8 @@ class SessionsTabManager:
                 self.sessions_table.setItem(row, 3, NumericTableWidgetItem(f"{session['moon_illumination']:.0f}%" if session['moon_illumination'] is not None else ""))
                 self.sessions_table.setItem(row, 4, NumericTableWidgetItem(f"{session['moon_ra']:.2f}°" if session['moon_ra'] is not None else ""))
                 self.sessions_table.setItem(row, 5, NumericTableWidgetItem(f"{session['moon_dec']:.2f}°" if session['moon_dec'] is not None else ""))
+                self.sessions_table.setItem(row, 6, NumericTableWidgetItem(f"{session['total']:.1f}" if session['total'] is not None else ""))
+                self.sessions_table.setItem(row, 7, QTableWidgetItem(session['comments'] if session['comments'] is not None else ""))
             
             self.sessions_table.resizeColumnsToContents()
             self.statusbar.showMessage(f'Loaded {len(sessions)} session(s)')
@@ -89,6 +93,7 @@ class SessionsTabManager:
         """Add a new session to the database."""
         name = self.session_name_line_edit.text().strip()
         start_date = self.start_date_edit.date().toString("yyyy-MM-dd")
+        comments = self.comments_line_edit.text().strip()
 
         if not name:
             QMessageBox.warning(self.parent, 'Warning', 'Please enter a session name.')
@@ -104,8 +109,9 @@ class SessionsTabManager:
             start_date_plus_one = datetime.datetime.strptime(start_date, "%Y-%m-%d") + datetime.timedelta(days=1)
             moon_illumination, moon_ra, moon_dec = calculate_moon_data(start_date_plus_one.isoformat())
 
-            self.db.add_session(name, start_date, moon_illumination, moon_ra, moon_dec)
+            self.db.add_session(name, start_date,comments, moon_illumination, moon_ra, moon_dec)
             self.session_name_line_edit.clear()
+            self.comments_line_edit.clear()
             self.start_date_edit.setDate(QDate.currentDate())
             self.load_sessions()
             self.statusbar.showMessage(f'Added session: {name}')
@@ -124,10 +130,11 @@ class SessionsTabManager:
         session_id = int(self.sessions_table.item(row, 0).text())
         current_name = self.sessions_table.item(row, 1).text()
         current_start_date = self.sessions_table.item(row, 2).text()
+        current_comments = self.sessions_table.item(row, 7).text()
 
-        dialog = EditSessionDialog(current_name, current_start_date, self.parent)
+        dialog = EditSessionDialog(current_name, current_start_date,current_comments, self.parent)
         if dialog.exec():
-            new_name, new_start_date = dialog.get_values()
+            new_name, new_start_date, new_comments = dialog.get_values()
 
             # Check for duplicate session name, excluding the current session
             if self.db.session_name_exists(new_name, exclude_id=session_id):
@@ -139,7 +146,7 @@ class SessionsTabManager:
                 new_start_date_plus_one = datetime.datetime.strptime(new_start_date, "%Y-%m-%d") + datetime.timedelta(days=1)
                 moon_illumination, moon_ra, moon_dec = calculate_moon_data(new_start_date_plus_one.isoformat())
 
-                self.db.update_session(session_id, new_name, new_start_date, moon_illumination, moon_ra, moon_dec)
+                self.db.update_session(session_id, new_name, new_start_date, new_comments, moon_illumination, moon_ra, moon_dec)
                 self.load_sessions()
                 self.statusbar.showMessage(f'Updated session ID {session_id}')
             except Exception as e:

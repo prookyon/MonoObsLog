@@ -10,7 +10,7 @@ from PyQt6.QtCore import QDate
 class EditSessionDialog(QDialog):
     """Dialog for editing session data."""
     
-    def __init__(self, name, start_date, parent=None):
+    def __init__(self, name, start_date, comments, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Edit Session")
         
@@ -20,9 +20,11 @@ class EditSessionDialog(QDialog):
         self.start_date_edit = QDateEdit()
         self.start_date_edit.setCalendarPopup(True)
         self.start_date_edit.setDate(QDate.fromString(start_date, "yyyy-MM-dd"))
+        self.comments_edit = QLineEdit(comments)
         
         layout.addRow("Session Name:", self.name_edit)
         layout.addRow("Start Date:", self.start_date_edit)
+        layout.addRow("Comments:", self.comments_edit)
         
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
@@ -35,7 +37,7 @@ class EditSessionDialog(QDialog):
     
     def get_values(self):
         """Return the edited values."""
-        return self.name_edit.text(), self.start_date_edit.date().toString("yyyy-MM-dd")
+        return self.name_edit.text(), self.start_date_edit.date().toString("yyyy-MM-dd"), self.comments_edit.text()
 
 
 class EditCameraDialog(QDialog):

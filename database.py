@@ -31,7 +31,8 @@ class Database:
                 start_date TEXT NOT NULL,
                 moon_illumination REAL,
                 moon_ra REAL,
-                moon_dec REAL
+                moon_dec REAL,
+                comments TEXT
             )
         """)
         
@@ -164,26 +165,41 @@ class Database:
         self.connection.close()
     # ==================== Session Methods ====================
     
-    def add_session(self, name: str, start_date: str, moon_illumination: float = None, moon_ra: float = None, moon_dec: float = None) -> int:
+    def add_session(self, name: str, start_date: str,comments: str, moon_illumination: float = None, moon_ra: float = None, moon_dec: float = None) -> int:
         """Add a new session to the database."""
         self.cursor.execute(
-            "INSERT INTO sessions (name, start_date, moon_illumination, moon_ra, moon_dec) VALUES (?, ?, ?, ?, ?)",
-            (name, start_date, moon_illumination, moon_ra, moon_dec)
+            "INSERT INTO sessions (name, start_date, moon_illumination, moon_ra, moon_dec, comments) VALUES (?, ?, ?, ?, ?, ?)",
+            (name, start_date, moon_illumination, moon_ra, moon_dec, comments)
         )
         self.connection.commit()
         return self.cursor.lastrowid
     
     def get_all_sessions(self) -> List[Dict]:
         """Get all sessions from the database."""
-        self.cursor.execute("SELECT id, name, start_date, moon_illumination, moon_ra, moon_dec FROM sessions ORDER BY id DESC")
+        self.cursor.execute("SELECT id, name, start_date, moon_illumination, moon_ra, moon_dec, comments FROM sessions ORDER BY id DESC")
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
     
-    def update_session(self, session_id: int, name: str, start_date: str, moon_illumination: float = None, moon_ra: float = None, moon_dec: float = None) -> bool:
+    def get_all_sessions_with_totals(self) -> List[Dict]:
+        """Get all sessions from the database with exposure totals in hours."""
+        self.cursor.execute("""
+            SELECT s.id, s.name, s.start_date,
+            s.moon_illumination, s.moon_ra, s.moon_dec,
+            sum(o.total_exposure)/3600.0 as total,
+            s.comments
+            FROM sessions s
+            LEFT JOIN observations o on s.id = o.session_id
+            GROUP BY s.id
+            ORDER BY s.id DESC
+                            """)
+        rows = self.cursor.fetchall()
+        return [dict(row) for row in rows]
+    
+    def update_session(self, session_id: int, name: str, start_date: str, comments: str, moon_illumination: float = None, moon_ra: float = None, moon_dec: float = None) -> bool:
         """Update an existing session."""
         self.cursor.execute(
-            "UPDATE sessions SET name = ?, start_date = ?, moon_illumination = ?, moon_ra = ?, moon_dec = ? WHERE id = ?",
-            (name, start_date, moon_illumination, moon_ra, moon_dec, session_id)
+            "UPDATE sessions SET name = ?, start_date = ?, moon_illumination = ?, moon_ra = ?, moon_dec = ?, comments = ? WHERE id = ?",
+            (name, start_date, moon_illumination, moon_ra, moon_dec, comments, session_id)
         )
         self.connection.commit()
         return self.cursor.rowcount > 0

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>279</width>
+    <width>935</width>
     <height>300</height>
    </rect>
   </property>
@@ -41,7 +41,21 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="2" rowspan="2">
+     <item row="2" column="0">
+      <widget class="QLabel" name="sessionCommentLabel">
+       <property name="text">
+        <string>Comments:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="sessionCommentsLineEdit">
+       <property name="placeholderText">
+        <string>Enter comments (optional)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2" rowspan="3">
       <widget class="QPushButton" name="addSessionButton">
        <property name="text">
         <string>Add Session</string>
@@ -98,6 +112,16 @@
      <column>
       <property name="text">
        <string>Moon Dec</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Exposure Total (h)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Comments</string>
       </property>
      </column>
     </widget>
