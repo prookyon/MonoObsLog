@@ -2,7 +2,7 @@
 
 import os
 import datetime
-from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
+from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QTableWidget
 from PyQt6.QtCore import QDate
 from PyQt6 import uic
 
@@ -39,7 +39,7 @@ class SessionsTabManager:
         self.tab_widget.addTab(session_widget, "Sessions")
         
         # Store references
-        self.sessions_table = session_widget.findChild(QWidget, "sessionsTable")
+        self.sessions_table = session_widget.findChild(QTableWidget, "sessionsTable")
         self.session_name_line_edit = session_widget.findChild(QWidget, "sessionNameLineEdit")
         self.start_date_edit = session_widget.findChild(QWidget, "startDateEdit")
         self.add_session_button = session_widget.findChild(QWidget, "addSessionButton")
@@ -79,7 +79,8 @@ class SessionsTabManager:
                 self.sessions_table.setItem(row, 3, NumericTableWidgetItem(f"{session['moon_illumination']:.0f}%" if session['moon_illumination'] is not None else ""))
                 self.sessions_table.setItem(row, 4, NumericTableWidgetItem(f"{session['moon_ra']:.2f}°" if session['moon_ra'] is not None else ""))
                 self.sessions_table.setItem(row, 5, NumericTableWidgetItem(f"{session['moon_dec']:.2f}°" if session['moon_dec'] is not None else ""))
-
+            
+            self.sessions_table.resizeColumnsToContents()
             self.statusbar.showMessage(f'Loaded {len(sessions)} session(s)')
         except Exception as e:
             QMessageBox.critical(self.parent, 'Error', f'Failed to load sessions: {str(e)}')
