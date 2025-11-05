@@ -48,15 +48,18 @@ The application follows a **modular architecture** with clear separation of conc
 - `calculate_moon_data(date)`: Calculates moon illumination percentage, Right Ascension (RA), and Declination (Dec) for a given date using astropy
 - `lookup_object_coordinates(object_name)`: Queries Simbad astronomical database via astropy to resolve object names to equatorial coordinates (returns RA in degrees)
 - `calculate_angular_separation(ra1_deg, dec1_deg, ra2_deg, dec2_deg)`: Calculates angular separation between two celestial coordinates using astropy
-**Dependencies**: astropy (Time, coordinates, solar_system_ephemeris, SkyCoord), numpy, datetime
+- `calculate_transit_time(ra_hours,dec_degrees,observer_lat,observer_lon,observer_elevation)`: Calculates meridian transit time of a celestial body at given coordinates
+**Dependencies**: astropy (Time, coordinates, solar_system_ephemeris, SkyCoord),astroplan, numpy, datetime
 **Returns**:
   - `calculate_moon_data()`: Tuple of (illumination_percent, moon_ra_degrees, moon_dec_degrees)
   - `lookup_object_coordinates()`: Tuple of (ra_degrees, dec_degrees) or raises Exception with user-friendly error message
   - `calculate_angular_separation()`: Angular separation in degrees (float)
+  - `calculate_transit_time()`: Time of transit (datetime)
 **Usage**:
   - Moon data: Called automatically when adding/editing sessions to store moon data
   - Object coordinates: Called when user clicks "Lookup Coordinates" button in EditObjectDialog; RA is converted from degrees to hours for storage
   - Angular separation: Used in observations tab to show distance between observed objects and moon
+  - Transit time: used in Objects tab table
 **Storage Format**:
   - RA: Stored in decimal hours (0-24h, where 1h = 15°)
   - Dec: Stored in decimal degrees (-90° to +90°)
@@ -128,8 +131,12 @@ The application follows a **modular architecture** with clear separation of conc
 - `set_moon_angular_separation_warning(value)`: Sets angular separation warning degrees
 - `get_database_path()`: Returns database path if set, None otherwise
 - `set_database_path(path)`: Sets database path
+- `get_latitude()`: Returns observer latitude
+- `get_longitude()`: Returns observer longitude
+- `set_latitude()`: Sets observer latitude
+- `set_longitude()`: Sets observer longitude
 **Dependencies**: json, os
-**Storage**: settings.json file with default values (moon_illumination_warning_percent: 75, moon_angular_separation_warning_deg: 60). database_path has no default - user must select on first run.
+**Storage**: settings.json file with default values (moon_illumination_warning_percent: 75, moon_angular_separation_warning_deg: 60, latitude: 0.0, longitude: 0.0). database_path has no default - user must select on first run.
 **When to modify**: Adding new configurable settings
 
 ### Dialog Classes
@@ -182,12 +189,13 @@ The application follows a **modular architecture** with clear separation of conc
 #### `tab_managers/objects_tab.py`
 **Purpose**: Manages Objects tab (celestial objects like M31, NGC7000) with optional equatorial coordinates
 **Key Methods**:
-- `setup_tab()`: Loads UI, connects signals, configures table with RA/Dec columns
-- `load_objects()`: Fetches and displays all objects including coordinates (RA in hours with 'h' suffix, Dec in degrees with '°' suffix)
+- `setup_tab()`: Loads UI, connects signals, configures table with RA/Dec columns, adds `MplCanvas` to layout.
+- `load_objects()`: Fetches and displays all objects including coordinates (RA in hours with 'h' suffix, Dec in degrees with '°' suffix). If RA and Dec are present then calculates and displays transit time.
 - `add_object()`: Opens EditObjectDialog for object name and optional coordinate entry or lookup
 - `edit_object()`: Opens EditObjectDialog to edit object name and coordinates
 - `delete_object()`: Deletes object with confirmation
-**UI Elements**: Table (with RA in hours and Dec in degrees columns), name input, add/edit/delete buttons
+- `selection_changed()`: Runs on table selection change to display altitude plot
+**UI Elements**: Table (with RA in hours and Dec in degrees columns), selected object altitude plot (added dynamically), name input, add/edit/delete buttons
 **Database Operations**: get_all_objects, add_object, update_object, delete_object
 **Special Features**:
 - Optional equatorial coordinate storage (RA in decimal hours 0-24h, Dec in decimal degrees -90° to +90°)
@@ -196,6 +204,7 @@ The application follows a **modular architecture** with clear separation of conc
 - Coordinates display as empty strings if not set
 - User-friendly error messages for network issues and unknown object names
 - Display precision: 6 decimal places for both RA and Dec
+- Helper class `MplCanvas` for altitude plot
 
 #### `tab_managers/sessions_tab.py`
 **Purpose**: Manages Sessions tab (observation sessions with dates and moon data)
@@ -322,7 +331,7 @@ The application follows a **modular architecture** with clear separation of conc
 - `setup_tab()`: Loads UI, connects signals, loads current settings
 - `load_settings()`: Populates UI with current settings values
 - `save_settings()`: Saves UI values to settings file and refreshes observations table
-**UI Elements**: Spin boxes for moon illumination warning % and angular separation warning °
+**UI Elements**: Spin boxes for moon illumination warning %, angular separation warning °, latitude, longitude
 **Dependencies**: settings.py module
 **Special Features**:
 - Real-time updates to observations table highlighting when settings change
@@ -474,6 +483,7 @@ All `.ui` files are loaded using relative paths to ensure the application works 
 - **PyQt6**: GUI framework
 - **matplotlib**: Chart visualization (Monthly Stats tab)
 - **astropy**: Astronomical calculations (Moon data computation)
+- **astroplan**: Astronomical calculations and plotting
 - **openpyxl**: Excel file export functionality (Observations tab)
 - **SQLite3**: Database (built-in Python)
 - **Python 3.x**: Runtime environment
