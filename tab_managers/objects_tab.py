@@ -1,11 +1,18 @@
 """Objects tab manager for the observation log application."""
 
 import os
-import datetime
-from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QInputDialog
+from datetime import datetime, timedelta, UTC
+from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QInputDialog, QTableWidget
 from PyQt6 import uic
-from dialogs import EditObjectDialog
+from PyQt6.QtCore import Qt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+import astropy.units as u
+from astroplan import FixedTarget, Observer
+from astroplan.plots import plot_airmass, plot_altitude
+from astropy.coordinates import EarthLocation, SkyCoord
 
+from dialogs import EditObjectDialog
 from utilities import NumericTableWidgetItem
 from calculations import calculate_transit_time
 import settings
@@ -38,8 +45,14 @@ class ObjectsTabManager:
         uic.loadUi(ui_path, object_widget)
         self.tab_widget.addTab(object_widget, "Objects")
 
+        # Add matplotlib canvas
+        self.canvas = MplCanvas(self, width=6, height=3, dpi=100)
+        layout = object_widget.layout()
+        layout.addWidget(self.canvas)
+
+
         # Store references
-        self.objects_table = object_widget.findChild(QWidget, "objectsTable")
+        self.objects_table = object_widget.findChild(QTableWidget, "objectsTable")
         self.name_line_edit = object_widget.findChild(QWidget, "nameLineEdit")
         self.add_button = object_widget.findChild(QWidget, "addButton")
         self.edit_button = object_widget.findChild(QWidget, "editButton")
@@ -50,6 +63,7 @@ class ObjectsTabManager:
         self.edit_button.clicked.connect(self.edit_object)
         self.delete_button.clicked.connect(self.delete_object)
         self.name_line_edit.returnPressed.connect(self.add_object)
+        self.objects_table.itemSelectionChanged.connect(self.selection_changed)
 
         # Hide ID column
         self.objects_table.setColumnHidden(0, True)
@@ -72,16 +86,19 @@ class ObjectsTabManager:
                 # Display RA coordinate in hours (or empty if None)
                 ra_text = f"{obj['ra']:.6f}h" if obj['ra'] is not None else ""
                 self.objects_table.setItem(row, 2, NumericTableWidgetItem(ra_text))
+                self.objects_table.item(row,2).setData(Qt.ItemDataRole.UserRole, obj['ra'])
                 
                 # Display Dec coordinate (or empty if None)
                 dec_text = f"{obj['dec']:.6f}°" if obj['dec'] is not None else ""
                 self.objects_table.setItem(row, 3, NumericTableWidgetItem(dec_text))
+                self.objects_table.item(row,3).setData(Qt.ItemDataRole.UserRole, obj['dec'])
 
                 # Display transit time if both RA and Dec are available
                 if obj['ra'] is not None and obj['dec'] is not None:
                     transit_time = calculate_transit_time(obj['ra'], obj['dec'], settings.get_latitude(), settings.get_longitude())
-                    self.objects_table.setItem(row, 4, QTableWidgetItem(transit_time.replace(tzinfo=datetime.UTC).astimezone().strftime('%H:%M')))
+                    self.objects_table.setItem(row, 4, QTableWidgetItem(transit_time.replace(tzinfo=UTC).astimezone().strftime('%H:%M')))
             
+            self.objects_table.resizeColumnsToContents()
             self.statusbar.showMessage(f'Loaded {len(objects)} object(s)')
         except Exception as e:
             QMessageBox.critical(self.parent, 'Error', f'Failed to load objects: {str(e)}')
@@ -172,3 +189,29 @@ class ObjectsTabManager:
                 self.statusbar.showMessage(f'Deleted object: {object_name}')
             except Exception as e:
                 QMessageBox.critical(self.parent, 'Error', f'Failed to delete object: {str(e)}')
+    
+    def selection_changed(self):
+        """Handle selection change in the objects table."""
+        self.canvas.fig.clear()
+        selected_rows = self.objects_table.selectedItems()
+        if selected_rows:
+            row = self.objects_table.currentRow()
+            object_name = self.objects_table.item(row, 1).text()
+            object_ra = self.objects_table.item(row, 2).data(Qt.ItemDataRole.UserRole)
+            object_dec = self.objects_table.item(row, 3).data(Qt.ItemDataRole.UserRole)
+            if object_ra is None or object_dec is None:
+                return
+            
+            time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+            target = FixedTarget(coord=SkyCoord(ra=object_ra*15*u.deg, dec=object_dec*u.deg), name=object_name)
+            obs = Observer(EarthLocation(lat=settings.get_latitude()*u.deg,
+                            lon=settings.get_longitude()*u.deg,
+                            height=0*u.m))
+            plot_airmass(target, obs, time.astimezone(),
+                         self.canvas.fig.add_subplot(111),
+                         brightness_shading=True,altitude_yaxis=True, use_local_tz=True)
+
+class MplCanvas(FigureCanvas):
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        super().__init__(self.fig)
