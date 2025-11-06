@@ -7,16 +7,15 @@ including objects, cameras, telescopes, filters, and observations.
 
 import sys
 import os
+from starplot import Observer as SPObserver # For whatever reason Starplot package does not work with PyQt6 without some random import like that
 from PyQt6.QtWidgets import QApplication, QFileDialog, QMessageBox
 
 from main_window import MainWindow
 import settings
 import backup
-from testing import test_plot
 
 
 def main():
-    test_plot()
     """Main entry point for the application."""
     app = QApplication(sys.argv)
     

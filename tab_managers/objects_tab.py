@@ -19,7 +19,7 @@ from dialogs import EditObjectDialog
 from utilities import NumericTableWidgetItem
 from calculations import calculate_transit_time
 import settings
-from testing import test_plot
+import image_viewer
 
 
 class ObjectsTabManager:
@@ -69,7 +69,7 @@ class ObjectsTabManager:
         self.delete_button.clicked.connect(self.delete_object)
         self.name_line_edit.returnPressed.connect(self.add_object)
         self.objects_table.itemSelectionChanged.connect(self.selection_changed)
-        self.plot_button.clicked.connect(test_plot)
+        self.plot_button.clicked.connect(self.display_plot)
 
         # Hide ID column
         self.objects_table.setColumnHidden(0, True)
@@ -234,23 +234,55 @@ class ObjectsTabManager:
             autoscale=True,
         )
         p.horizon()
+
+        for row in range(0, self.objects_table.rowCount()):
+            object_name = self.objects_table.item(row, 1).text()
+            object_ra = self.objects_table.item(row, 2).data(Qt.ItemDataRole.UserRole)
+            object_dec = self.objects_table.item(row, 3).data(Qt.ItemDataRole.UserRole)
+            if object_ra is None or object_dec is None:
+                continue
+            p.marker(
+                ra=object_ra * 15,
+                dec=object_dec,
+                style={
+                    "marker": {
+                        "size": 5,
+                        "symbol": "diamond",
+                        "fill": "full",
+                        "color": "#F00",
+                        "edge_color": "hsl(44, 70%, 73%)",
+                        "edge_width": 2,
+                        "line_style": "solid",
+                        "alpha": 1,
+                        "zorder": 2000,
+                    },
+                    "label": {
+                        "zorder": 2000,
+                        "font_size": 16,
+                        "font_weight": "bold",
+                        "font_color": "hsl(44, 70%, 64%)",
+                        "font_alpha": 1,
+                        "offset_x": "auto",
+                        "offset_y": "auto",
+                        "anchor_point": "top right",
+                    },
+                },
+                label=object_name,
+            )
+
         p.constellations()
-        p.stars(where=[_.magnitude < 4.6], where_labels=[_.magnitude < 2.4])
+        p.stars(where=[_.magnitude < 4.6], where_labels=[_.magnitude < 1.5])
         p.constellation_labels()
+
         # create file in temp folder
         temp_file_path = os.path.join(tempfile.gettempdir(), 'zenith_plot.png')
         p.export(temp_file_path, transparent=True, padding=0.1)
 
-        # create a dialog window that shows the image
-        dialog = QDialog(self.parent)
-        dialog.setWindowTitle("Zenith Plot")
-        layout = QVBoxLayout()
-        label = QLabel()
-        pixmap = QPixmap(temp_file_path)
-        label.setPixmap(pixmap)
-        layout.addWidget(label)
-        dialog.setLayout(layout)
-        dialog.exec()
+        viewer = image_viewer.ImageViewer(temp_file_path)
+        viewer.show()
+
+        #cleanup temp image
+        os.remove(temp_file_path)
 
 class MplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
