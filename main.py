@@ -12,9 +12,11 @@ from PyQt6.QtWidgets import QApplication, QFileDialog, QMessageBox
 from main_window import MainWindow
 import settings
 import backup
+from testing import test_plot
 
 
 def main():
+    test_plot()
     """Main entry point for the application."""
     app = QApplication(sys.argv)
     

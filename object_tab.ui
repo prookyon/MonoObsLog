@@ -101,6 +101,13 @@
         </spacer>
        </item>
        <item>
+        <widget class="QPushButton" name="plotButton">
+         <property name="text">
+          <string>Show Plot ...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="editButton">
          <property name="text">
           <string>Edit Selected</string>
