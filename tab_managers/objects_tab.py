@@ -2,7 +2,7 @@
 
 import os, tempfile
 from datetime import datetime, timedelta, UTC
-from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QInputDialog, QTableWidget, QPushButton, QDialog, QVBoxLayout, QLabel
+from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QInputDialog, QTableWidget, QPushButton, QDialog, QVBoxLayout, QLabel, QMainWindow
 from PyQt6 import uic
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
@@ -12,14 +12,14 @@ import astropy.units as u
 from astroplan import FixedTarget, Observer
 from astroplan.plots import plot_airmass, plot_altitude
 from astropy.coordinates import EarthLocation, SkyCoord
-from starplot import ZenithPlot, Observer as SPObserver, _
-from starplot.styles import PlotStyle, extensions
+
 
 from dialogs import EditObjectDialog
-from utilities import NumericTableWidgetItem
+from utilities import NumericTableWidgetItem, MplCanvas
 from calculations import calculate_transit_time
 import settings
 import image_viewer
+from plot import ObjectsPlot
 
 
 class ObjectsTabManager:
@@ -218,22 +218,7 @@ class ObjectsTabManager:
                          brightness_shading=True,altitude_yaxis=True, use_local_tz=True)
             
     def display_plot(self):
-        dt = datetime.now().astimezone()
-        observer = SPObserver(
-            dt=dt,
-            lat=settings.get_latitude(),
-            lon=settings.get_longitude()
-        )
-        
-        p = ZenithPlot(
-            observer=observer,
-            style=PlotStyle().extend(
-                extensions.BLUE_MEDIUM,
-            ),
-            resolution=3600,
-            autoscale=True,
-        )
-        p.horizon()
+        marker_coords: list[float,float,str] = []
 
         for row in range(0, self.objects_table.rowCount()):
             object_name = self.objects_table.item(row, 1).text()
@@ -241,50 +226,10 @@ class ObjectsTabManager:
             object_dec = self.objects_table.item(row, 3).data(Qt.ItemDataRole.UserRole)
             if object_ra is None or object_dec is None:
                 continue
-            p.marker(
-                ra=object_ra * 15,
-                dec=object_dec,
-                style={
-                    "marker": {
-                        "size": 5,
-                        "symbol": "diamond",
-                        "fill": "full",
-                        "color": "#F00",
-                        "edge_color": "hsl(44, 70%, 73%)",
-                        "edge_width": 2,
-                        "line_style": "solid",
-                        "alpha": 1,
-                        "zorder": 2000,
-                    },
-                    "label": {
-                        "zorder": 2000,
-                        "font_size": 16,
-                        "font_weight": "bold",
-                        "font_color": "hsl(44, 70%, 64%)",
-                        "font_alpha": 1,
-                        "offset_x": "auto",
-                        "offset_y": "auto",
-                        "anchor_point": "top right",
-                    },
-                },
-                label=object_name,
-            )
+            marker_coords.append([object_ra,object_dec,object_name])
 
-        p.constellations()
-        p.stars(where=[_.magnitude < 4.6], where_labels=[_.magnitude < 1.5])
-        p.constellation_labels()
+        plot = ObjectsPlot(self.parent,settings.get_latitude(),settings.get_longitude(), marker_coords)
+        plot.display_plot()
 
-        # create file in temp folder
-        temp_file_path = os.path.join(tempfile.gettempdir(), 'zenith_plot.png')
-        p.export(temp_file_path, transparent=True, padding=0.1)
-
-        viewer = image_viewer.ImageViewer(temp_file_path)
-        viewer.show()
-
-        #cleanup temp image
-        os.remove(temp_file_path)
-
-class MplCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        self.fig = Figure(figsize=(width, height), dpi=dpi)
-        super().__init__(self.fig)
+            
+   
