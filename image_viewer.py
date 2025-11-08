@@ -1,9 +1,11 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem
+from PyQt6.QtSvgWidgets import QGraphicsSvgItem
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
+import pathlib
 
 class ImageViewer(QMainWindow):
-    def __init__(self, png_path):
+    def __init__(self, graphics_path):
         super().__init__()
         self.setWindowTitle("Image Viewer")
         self.showMaximized()
@@ -12,8 +14,14 @@ class ImageViewer(QMainWindow):
         self.view = MyGraphicsView(self.scene)
         self.setCentralWidget(self.view)
 
-        self.pixmap_item = QGraphicsPixmapItem(QPixmap(png_path))
-        self.scene.addItem(self.pixmap_item)
+        if pathlib.Path(graphics_path).suffix in ['.png', '.jpg', '.jpeg', '.bmp', '.gif']:
+            self.pixmap_item = QGraphicsPixmapItem(QPixmap(graphics_path))
+            self.scene.addItem(self.pixmap_item)
+        elif pathlib.Path(graphics_path).suffix == '.svg':
+            self.svg_item = QGraphicsSvgItem(graphics_path)
+            self.scene.addItem(self.svg_item)
+        else:
+            return
 
         self.view.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
         self.view.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
