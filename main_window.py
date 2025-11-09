@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         
         # Load the main UI file
         base_dir = os.path.dirname(__file__)
-        ui_path = os.path.join(base_dir, 'mainwindow.ui')
+        ui_path = os.path.join(base_dir, 'uifiles', 'mainwindow.ui')
         uic.loadUi(ui_path, self)
         
         # Initialize database with the specified path

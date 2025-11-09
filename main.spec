@@ -1,11 +1,15 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import copy_metadata
+
+datas = [('uifiles/*.ui','./uifiles'), ('templates/*.*','templates'), ('images/*.*', 'images')]
+datas += copy_metadata('matplotlib')
 
 
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('*.ui','.'), ('templates/*.*','templates'), ('images/*.*', 'images')],
+    datas=datas,
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

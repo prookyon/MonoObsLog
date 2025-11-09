@@ -31,7 +31,7 @@ class MonthlyStatsTabManager:
         """Setup the Monthly Stats tab."""
         stats_widget = QWidget()
         base_dir = os.path.dirname(os.path.dirname(__file__))
-        ui_path = os.path.join(base_dir, 'monthly_stats_tab.ui')
+        ui_path = os.path.join(base_dir, 'uifiles', 'monthly_stats_tab.ui')
         uic.loadUi(ui_path, stats_widget)
         self.tab_widget.addTab(stats_widget, "Monthly Stats")
         

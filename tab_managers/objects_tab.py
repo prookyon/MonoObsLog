@@ -74,7 +74,7 @@ class ObjectsTabManager:
         """Setup the Objects tab."""
         object_widget = QWidget()
         base_dir = os.path.dirname(os.path.dirname(__file__))
-        ui_path = os.path.join(base_dir, 'object_tab.ui')
+        ui_path = os.path.join(base_dir, 'uifiles', 'object_tab.ui')
         uic.loadUi(ui_path, object_widget)
         self.tab_widget.addTab(object_widget, "Objects")
 

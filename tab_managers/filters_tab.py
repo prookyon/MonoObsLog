@@ -30,7 +30,7 @@ class FiltersTabManager:
         """Setup the Filters tab."""
         filter_widget = QWidget()
         base_dir = os.path.dirname(os.path.dirname(__file__))
-        ui_path = os.path.join(base_dir, 'filter_tab.ui')
+        ui_path = os.path.join(base_dir, 'uifiles', 'filter_tab.ui')
         uic.loadUi(ui_path, filter_widget)
         self.tab_widget.addTab(filter_widget, "Filters")
         

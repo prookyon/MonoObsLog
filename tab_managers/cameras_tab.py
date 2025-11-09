@@ -31,7 +31,7 @@ class CamerasTabManager:
         """Setup the Cameras tab."""
         camera_widget = QWidget()
         base_dir = os.path.dirname(os.path.dirname(__file__))
-        ui_path = os.path.join(base_dir, 'camera_tab.ui')
+        ui_path = os.path.join(base_dir, 'uifiles', 'camera_tab.ui')
         uic.loadUi(ui_path, camera_widget)
         self.tab_widget.addTab(camera_widget, "Cameras")
         

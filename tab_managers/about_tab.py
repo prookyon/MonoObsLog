@@ -29,7 +29,7 @@ class AboutTabManager:
         """Setup the About tab."""
         about_widget = QWidget()
         base_dir = os.path.dirname(os.path.dirname(__file__))
-        ui_path = os.path.join(base_dir, 'about_tab.ui')
+        ui_path = os.path.join(base_dir, 'uifiles', 'about_tab.ui')
         uic.loadUi(ui_path, about_widget)
         self.tab_widget.addTab(about_widget, "About")
 

@@ -29,7 +29,7 @@ class SettingsTabManager:
         """Setup the Settings tab."""
         settings_widget = QWidget()
         base_dir = os.path.dirname(os.path.dirname(__file__))
-        ui_path = os.path.join(base_dir, 'settings_tab.ui')
+        ui_path = os.path.join(base_dir, 'uifiles', 'settings_tab.ui')
         uic.loadUi(ui_path, settings_widget)
         self.tab_widget.addTab(settings_widget, "Settings")
 

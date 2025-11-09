@@ -35,7 +35,7 @@ class SessionsTabManager:
         """Setup the Sessions tab."""
         session_widget = QWidget()
         base_dir = os.path.dirname(os.path.dirname(__file__))
-        ui_path = os.path.join(base_dir, 'session_tab.ui')
+        ui_path = os.path.join(base_dir, 'uifiles', 'session_tab.ui')
         uic.loadUi(ui_path, session_widget)
         self.tab_widget.addTab(session_widget, "Sessions")
         
