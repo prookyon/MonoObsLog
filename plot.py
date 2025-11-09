@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QApplication
 
 class ObjectsPlot:
@@ -17,7 +17,7 @@ class ObjectsPlot:
 
     def _generate_plot(self):
         from starplot import Observer as SPObserver, _
-        from starplot.styles import PlotStyle, extensions
+        from starplot.styles import PlotStyle, extensions, PolygonStyle
         from starplot import ZenithPlot
 
         dt = datetime.now().astimezone()
@@ -71,10 +71,15 @@ class ObjectsPlot:
                 label=object_name,
             )
 
+        p.sun()
+        p.moon(show_phase=True)
+        p.planets()
+        p.zenith()
         p.constellations()
         p.stars(where=[_.magnitude < 4], where_labels=[False])
         p.celestial_equator()
         p.milky_way()
+        p.ellipse([observer.lst+90.0, 0.0],180,180, PolygonStyle(edge_width=1,edge_color='red'))
         p.horizon()
         p.constellation_labels(style__font_alpha=0.4, auto_adjust=False)
 
@@ -87,6 +92,7 @@ class ObjectsPlot:
         canvas = FigureCanvas(p.fig)
         self.plot.layout().removeWidget(self.plot.label)
         self.plot.setMinimumSize(640,480)
+        self.plot.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, False)
         self.plot.showMaximized()
         self.plot.layout().addWidget(canvas)
 
@@ -107,11 +113,3 @@ class PlotWindow(QWidget):
         self.label.setText("Generating ...")
         layout.addWidget(self.label)
         self.setLayout(layout)
-        self.resize_timer = QTimer(self)
-        self.resize_timer.setSingleShot(True)
-
-    def resizeEvent(self, event):
-        if self.resize_timer.isActive():
-            return
-        self.resize_timer.start(1000)  # 1000ms / 4 = 250ms
-        super().resizeEvent(event)
