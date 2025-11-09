@@ -3,8 +3,6 @@ from datetime import datetime
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QApplication
-from starplot import ZenithPlot, Observer as SPObserver, _
-from starplot.styles import PlotStyle, extensions
 
 class ObjectsPlot:
 
@@ -18,6 +16,10 @@ class ObjectsPlot:
         QApplication.instance().processEvents()
 
     def _generate_plot(self):
+        from starplot_subclasses import MyZenithPlot
+        from starplot import Observer as SPObserver, _
+        from starplot.styles import PlotStyle, extensions
+
         dt = datetime.now().astimezone()
         observer = SPObserver(
             dt=dt,
@@ -31,7 +33,7 @@ class ObjectsPlot:
                 extensions.BLUE_NIGHT,
             ),
             resolution=2000,
-            scale=0.4,
+            scale=0.35,
         )
 
         for coords in self.marker_coords:
@@ -80,7 +82,7 @@ class ObjectsPlot:
 
 
     def display_plot(self):
-        
+        from starplot_subclasses import MyZenithPlot
         p: MyZenithPlot = self._generate_plot()
         canvas = FigureCanvas(p.getFigure())
         self.plot.layout().removeWidget(self.plot.label)
@@ -89,12 +91,7 @@ class ObjectsPlot:
         self.plot.layout().addWidget(canvas)
 
 
-class MyZenithPlot(ZenithPlot):
-    def __init(self):
-        super().__init__()
-    
-    def getFigure(self):
-        return self.fig
+
     
 
 
