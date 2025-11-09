@@ -74,9 +74,15 @@ This avoids the console window.
 
 ### Objects Tab
 - Supports querying location data from Simbad server. Or you can add the coordinates yourself. This is not required but needed for Moon angular separation calculations and altitude plot.
+- Shows altitude plot for selected object
+- Shows sky view with all known objects (make sure to set correct location in settings)
 
 ### Sessions Tab
 - Intended usage is to add sessions by the date of the evening before the session. (So if you started imaging after midnight enter the previous day) The logic for moon calculations is based on that. Why? Personal preference 🙂
+
+### Observations Tab
+- List on the left can be used to filter to one object
+- Export button allows to export the whole list to either Excel or HTML file
 
 ### Cameras Tab
 - The technical data is not used at the moment. Maybe in the future.
@@ -91,5 +97,4 @@ This avoids the console window.
 
 - **UI Framework**: PyQt6
 - **Database**: SQLite3
-- **UI Design**: Qt Designer (.ui files)
 - **Coding**: Some of the code is written by using AI coding agents. I don't blindly trust what they spit out, but there certainly can be some weird choices in architecture and code logic. It's a hobby project so I appreciate the time it saves me.
