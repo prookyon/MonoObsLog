@@ -157,6 +157,8 @@ class ObservationsTabManager:
                 observations = [obs for obs in self.db.get_all_observations() if obs['object_name'] == object_filter]
 
             self.observations_table.setRowCount(len(observations))
+            moon_illumination_warning = settings.get_moon_illumination_warning()
+            angular_sep_warning = settings.get_moon_angular_separation_warning()
 
             for row, obs in enumerate(observations):
                 # Calculate angular separation if coordinates are available
@@ -183,7 +185,6 @@ class ObservationsTabManager:
 
                 # Moon Illumination column with conditional highlighting
                 moon_illumination_item = NumericTableWidgetItem(f"{obs['moon_illumination']:.0f}%" if obs['moon_illumination'] is not None else "")
-                moon_illumination_warning = settings.get_moon_illumination_warning()
                 if obs['moon_illumination'] is not None and obs['moon_illumination'] > moon_illumination_warning:
                     # For pastel: high value, low-to-medium saturation
                     saturation = 40  # 0-100, lower = more pastel
@@ -194,7 +195,6 @@ class ObservationsTabManager:
 
                 # Angular Separation column with conditional highlighting
                 angular_sep_item = NumericTableWidgetItem(angular_sep)
-                angular_sep_warning = settings.get_moon_angular_separation_warning()
                 if angular_sep_value is not None and angular_sep_value < angular_sep_warning:
                     # For pastel: high value, low-to-medium saturation
                     saturation = 40  # 0-100, lower = more pastel
@@ -511,6 +511,8 @@ class ObservationsTabManager:
 
             # Generate table rows
             table_rows = ""
+            moon_illumination_warning = settings.get_moon_illumination_warning()
+            angular_sep_warning = settings.get_moon_angular_separation_warning()
             for obs in observations:
                 # Calculate angular separation same way as in load_observations
                 angular_sep = ""
@@ -526,12 +528,10 @@ class ObservationsTabManager:
                         angular_sep = "N/A"
 
                 # Check for moon illumination warning
-                moon_illumination_warning = settings.get_moon_illumination_warning()
                 if obs['moon_illumination'] is not None and obs['moon_illumination'] > moon_illumination_warning:
                     moon_warning_class = "moon-warning"
 
                 # Check for angular separation warning
-                angular_sep_warning = settings.get_moon_angular_separation_warning()
                 if angular_sep_value is not None and angular_sep_value < angular_sep_warning:
                     angular_warning_class = "angular-warning"
 
