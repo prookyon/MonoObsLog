@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6.QtGui import QColor
 from PyQt6 import uic
 
-from utilities import NumericTableWidgetItem
+from utilities.NumericTableWidgetItem import NumericTableWidgetItem
 
 
 class ObjectStatsTabManager:

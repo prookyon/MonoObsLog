@@ -9,7 +9,7 @@ from PyQt6 import uic
 from database import Database
 from dialogs import EditSessionDialog
 from calculations import calculate_moon_data
-from utilities import NumericTableWidgetItem
+from utilities.NumericTableWidgetItem import NumericTableWidgetItem
 
 
 class SessionsTabManager:

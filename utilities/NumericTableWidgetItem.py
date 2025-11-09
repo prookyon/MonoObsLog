@@ -1,13 +1,4 @@
-"""
-Utilities for the Observation Log Application
-It provides reusable UI utility classes for PyQt6 widgets.
-"""
-
 from PyQt6.QtWidgets import QTableWidgetItem
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-
-
 
 class NumericTableWidgetItem(QTableWidgetItem if QTableWidgetItem else object):
     """
@@ -90,11 +81,3 @@ class NumericTableWidgetItem(QTableWidgetItem if QTableWidgetItem else object):
         if isinstance(other, NumericTableWidgetItem):
             return self.numeric_value < other.numeric_value
         return super().__lt__(other)
-    
-class MplCanvas(FigureCanvas):
-    """
-    Used for embedding matplotlib figure
-    """
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        self.fig = Figure(figsize=(width, height), dpi=dpi)
-        super().__init__(self.fig)

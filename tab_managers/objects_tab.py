@@ -1,24 +1,21 @@
 """Objects tab manager for the observation log application."""
 
-import os, tempfile
+import os
 from datetime import datetime, timedelta, UTC
-from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QInputDialog, QTableWidget, QPushButton, QDialog, QVBoxLayout, QLabel, QMainWindow
+from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QTableWidget, QPushButton
 from PyQt6 import uic
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QPixmap
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 import astropy.units as u
 from astroplan import FixedTarget, Observer
-from astroplan.plots import plot_airmass, plot_altitude
+from astroplan.plots import plot_airmass
 from astropy.coordinates import EarthLocation, SkyCoord
 
 
 from dialogs import EditObjectDialog
-from utilities import NumericTableWidgetItem, MplCanvas
+from utilities.NumericTableWidgetItem import NumericTableWidgetItem
+from utilities.MplCanvas import MplCanvas
 from calculations import calculate_transit_time
 import settings
-import image_viewer
 from plot import ObjectsPlot
 
 

@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6 import uic
 
 from dialogs import EditTelescopeDialog
-from utilities import NumericTableWidgetItem
+from utilities.NumericTableWidgetItem import NumericTableWidgetItem
 
 
 class TelescopesTabManager:

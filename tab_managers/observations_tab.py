@@ -9,7 +9,7 @@ from PyQt6 import uic
 
 from dialogs import EditObservationDialog
 from calculations import calculate_angular_separation
-from utilities import NumericTableWidgetItem
+from utilities.NumericTableWidgetItem import NumericTableWidgetItem
 import settings
 
 
