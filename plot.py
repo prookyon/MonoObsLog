@@ -16,9 +16,9 @@ class ObjectsPlot:
         QApplication.instance().processEvents()
 
     def _generate_plot(self):
-        from starplot_subclasses import MyZenithPlot
         from starplot import Observer as SPObserver, _
         from starplot.styles import PlotStyle, extensions
+        from starplot import ZenithPlot
 
         dt = datetime.now().astimezone()
         observer = SPObserver(
@@ -27,7 +27,7 @@ class ObjectsPlot:
             lon=self.longitude
         )
         
-        p = MyZenithPlot(
+        p = ZenithPlot(
             observer=observer,
             style=PlotStyle().extend(
                 extensions.BLUE_NIGHT,
@@ -82,9 +82,9 @@ class ObjectsPlot:
 
 
     def display_plot(self):
-        from starplot_subclasses import MyZenithPlot
-        p: MyZenithPlot = self._generate_plot()
-        canvas = FigureCanvas(p.getFigure())
+        from starplot import ZenithPlot
+        p: ZenithPlot = self._generate_plot()
+        canvas = FigureCanvas(p.fig)
         self.plot.layout().removeWidget(self.plot.label)
         self.plot.setMinimumSize(640,480)
         self.plot.showMaximized()
