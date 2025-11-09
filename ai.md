@@ -48,8 +48,8 @@ The application follows a **modular architecture** with clear separation of conc
 - `calculate_moon_data(date)`: Calculates moon illumination percentage, Right Ascension (RA), and Declination (Dec) for a given date using astropy
 - `lookup_object_coordinates(object_name)`: Queries Simbad astronomical database via astropy to resolve object names to equatorial coordinates (returns RA in degrees)
 - `calculate_angular_separation(ra1_deg, dec1_deg, ra2_deg, dec2_deg)`: Calculates angular separation between two celestial coordinates using astropy
-- `calculate_transit_time(ra_hours,dec_degrees,observer_lat,observer_lon,observer_elevation)`: Calculates meridian transit time of a celestial body at given coordinates
-**Dependencies**: astropy (Time, coordinates, solar_system_ephemeris, SkyCoord),astroplan, numpy, datetime
+- `calculate_transit_time(ra_hours, dec_degrees, observer_lat, observer_lon, observer_elevation)`: Calculates meridian transit time for a celestial body.
+**Dependencies**: astropy (Time, coordinates, solar_system_ephemeris, SkyCoord), astroplan, numpy, datetime
 **Returns**:
   - `calculate_moon_data()`: Tuple of (illumination_percent, moon_ra_degrees, moon_dec_degrees)
   - `lookup_object_coordinates()`: Tuple of (ra_degrees, dec_degrees) or raises Exception with user-friendly error message
@@ -63,6 +63,7 @@ The application follows a **modular architecture** with clear separation of conc
 **Storage Format**:
   - RA: Stored in decimal hours (0-24h, where 1h = 15°)
   - Dec: Stored in decimal degrees (-90° to +90°)
+**Performance**: `calculate_transit_time()` is CPU-intensive; use background threading when calculating for multiple objects
 **Error Handling**: Provides descriptive error messages for network issues, unknown objects, and other failures
 **When to modify**: Adding other astronomical calculations or celestial body data
 
@@ -188,15 +189,24 @@ The application follows a **modular architecture** with clear separation of conc
 
 #### `tab_managers/objects_tab.py`
 **Purpose**: Manages Objects tab (celestial objects like M31, NGC7000) with optional equatorial coordinates
+**Key Classes**:
+- `CalculateTransitWorker(QThread)`: Background worker thread for calculating transit times without blocking UI.
 **Key Methods**:
-- `setup_tab()`: Loads UI, connects signals, configures table with RA/Dec columns, adds `MplCanvas` to layout.
-- `load_objects()`: Fetches and displays all objects including coordinates (RA in hours with 'h' suffix, Dec in degrees with '°' suffix). If RA and Dec are present then calculates and displays transit time.
+- `setup_tab()`: Loads UI, connects signals, configures table with RA/Dec columns, adds `MplCanvas` to layout
+- `load_objects()`: Fetches objects from database (main thread), starts `CalculateTransitWorker` to calculate transit times in background.
+- `_on_objects_loaded(objects)`: Callback executed on main thread when worker finishes. Populates table with objects and pre-calculated transit times, updates status bar.
+- `_on_load_error(error_msg)`: Callback for handling worker thread errors
 - `add_object()`: Opens EditObjectDialog for object name and optional coordinate entry or lookup
 - `edit_object()`: Opens EditObjectDialog to edit object name and coordinates
 - `delete_object()`: Deletes object with confirmation
 - `selection_changed()`: Runs on table selection change to display altitude plot
 **UI Elements**: Table (with RA in hours and Dec in degrees columns), selected object altitude plot (added dynamically), name input, add/edit/delete buttons
 **Database Operations**: get_all_objects, add_object, update_object, delete_object
+**Threading Architecture**:
+- Database query runs in main thread (SQLite connection thread-safety requirement)
+- Transit time calculations run in background thread via `CalculateTransitWorker`
+- UI updates happen on main thread via Qt signals/slots
+- Prevents UI blocking during time-consuming transit calculations for multiple objects
 **Special Features**:
 - Optional equatorial coordinate storage (RA in decimal hours 0-24h, Dec in decimal degrees -90° to +90°)
 - Manual coordinate entry via spin boxes in EditObjectDialog (RA in hours, Dec in degrees)
@@ -204,6 +214,7 @@ The application follows a **modular architecture** with clear separation of conc
 - Coordinates display as empty strings if not set
 - User-friendly error messages for network issues and unknown object names
 - Display precision: 6 decimal places for both RA and Dec
+- Non-blocking UI: Transit calculations run asynchronously to keep interface responsive
 - Helper class `MplCanvas` for altitude plot
 
 #### `tab_managers/sessions_tab.py`

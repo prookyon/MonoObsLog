@@ -4,7 +4,7 @@ import os, tempfile
 from datetime import datetime, timedelta, UTC
 from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QInputDialog, QTableWidget, QPushButton, QDialog, QVBoxLayout, QLabel, QMainWindow
 from PyQt6 import uic
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QPixmap
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -20,6 +20,37 @@ from calculations import calculate_transit_time
 import settings
 import image_viewer
 from plot import ObjectsPlot
+
+
+class CalculateTransitWorker(QThread):
+    """Worker thread for calculating transit times without blocking UI."""
+    
+    finished = pyqtSignal(list)  # Emits the list of objects with transit times when done
+    error = pyqtSignal(str)  # Emits error message if something goes wrong
+    
+    def __init__(self, objects, latitude, longitude):
+        super().__init__()
+        self.objects = objects
+        self.latitude = latitude
+        self.longitude = longitude
+    
+    def run(self):
+        """Calculate transit times in background thread."""
+        try:
+            # Pre-calculate transit times in background
+            for obj in self.objects:
+                if obj['ra'] is not None and obj['dec'] is not None:
+                    transit_time = calculate_transit_time(
+                        obj['ra'], obj['dec'],
+                        self.latitude, self.longitude
+                    )
+                    obj['transit_time'] = transit_time.replace(tzinfo=UTC).astimezone().strftime('%H:%M')
+                else:
+                    obj['transit_time'] = None
+            
+            self.finished.emit(self.objects)
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 class ObjectsTabManager:
@@ -39,6 +70,7 @@ class ObjectsTabManager:
         self.db = db
         self.tab_widget = tab_widget
         self.statusbar = statusbar
+        self.worker = None  # Keep reference to worker thread
         self.setup_tab()
     
     def setup_tab(self):
@@ -80,9 +112,31 @@ class ObjectsTabManager:
         self.load_objects()
     
     def load_objects(self):
-        """Load all objects from database and display in table."""
+        """Load all objects from database and display in table (non-blocking)."""
+        # Show loading message
+        self.statusbar.showMessage('Loading objects...')
+        
         try:
+            # Get objects from database (fast, done in main thread)
             objects = self.db.get_all_objects()
+            
+            # Stop any existing worker
+            if self.worker and self.worker.isRunning():
+                self.worker.quit()
+                self.worker.wait()
+            
+            # Create and start worker thread for transit time calculations
+            self.worker = CalculateTransitWorker(objects, settings.get_latitude(), settings.get_longitude())
+            self.worker.finished.connect(self._on_objects_loaded)
+            self.worker.error.connect(self._on_load_error)
+            self.worker.start()
+        except Exception as e:
+            self.statusbar.clearMessage()
+            QMessageBox.critical(self.parent, 'Error', f'Failed to load objects: {str(e)}')
+    
+    def _on_objects_loaded(self, objects):
+        """Handle loaded objects data and update UI (runs on main thread)."""
+        try:
             self.objects_table.setRowCount(len(objects))
             
             for row, obj in enumerate(objects):
@@ -99,15 +153,19 @@ class ObjectsTabManager:
                 self.objects_table.setItem(row, 3, NumericTableWidgetItem(dec_text))
                 self.objects_table.item(row,3).setData(Qt.ItemDataRole.UserRole, obj['dec'])
 
-                # Display transit time if both RA and Dec are available
-                if obj['ra'] is not None and obj['dec'] is not None:
-                    transit_time = calculate_transit_time(obj['ra'], obj['dec'], settings.get_latitude(), settings.get_longitude())
-                    self.objects_table.setItem(row, 4, QTableWidgetItem(transit_time.replace(tzinfo=UTC).astimezone().strftime('%H:%M')))
+                # Display pre-calculated transit time
+                if obj.get('transit_time'):
+                    self.objects_table.setItem(row, 4, QTableWidgetItem(obj['transit_time']))
             
             self.objects_table.resizeColumnsToContents()
             self.statusbar.showMessage(f'Loaded {len(objects)} object(s)')
         except Exception as e:
-            QMessageBox.critical(self.parent, 'Error', f'Failed to load objects: {str(e)}')
+            QMessageBox.critical(self.parent, 'Error', f'Failed to display objects: {str(e)}')
+    
+    def _on_load_error(self, error_msg):
+        """Handle error from worker thread (runs on main thread)."""
+        self.statusbar.clearMessage()
+        QMessageBox.critical(self.parent, 'Error', f'Failed to load objects: {error_msg}')
     
     def add_object(self):
         """Add a new object to the database."""
