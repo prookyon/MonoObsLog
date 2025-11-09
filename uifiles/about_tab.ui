@@ -40,9 +40,6 @@
          <height>512</height>
         </size>
        </property>
-       <property name="pixmap">
-        <pixmap>images/icon.png</pixmap>
-       </property>
        <property name="scaledContents">
         <bool>true</bool>
        </property>

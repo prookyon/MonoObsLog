@@ -2,7 +2,7 @@
 
 import os
 from PyQt6.QtWidgets import QWidget, QLabel
-from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtGui import QDesktopServices, QPixmap
 from PyQt6.QtCore import QUrl
 from PyQt6 import uic
 
@@ -34,9 +34,13 @@ class AboutTabManager:
         self.tab_widget.addTab(about_widget, "About")
 
         # Store references if needed for future functionality
-        self.icon_label = about_widget.findChild(QWidget, "iconLabel")
+        self.icon_label = about_widget.findChild(QLabel, "iconLabel")
         self.version_label = about_widget.findChild(QWidget, "versionLabel")
         self.link_label = about_widget.findChild(QLabel, "linkLabel")
+
+        #load icon
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        self.icon_label.setPixmap(QPixmap(os.path.join(base_dir, 'images', 'icon.png')))
         
         # Set up the link with proper HTML formatting
         self.link_label.setText('<a href="https://github.com/prookyon/MonoObsLog">GitHub Repository</a>')
