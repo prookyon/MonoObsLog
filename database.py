@@ -526,13 +526,14 @@ class Database:
             SELECT
                 obj.name as object_name,
                 ft.name as filter_type,
-                SUM(o.total_exposure) as total_exposure
+                SUM(o.total_exposure) as total_exposure,
+                ft.priority as priority
             FROM observations o
             JOIN objects obj ON o.object_id = obj.id
             JOIN filters f ON o.filter_id = f.id
             JOIN filter_types ft ON f.filter_type_id = ft.id
             GROUP BY obj.name, ft.name
-            ORDER BY obj.name, ft.name
+            ORDER BY ft.priority, obj.name, ft.name
         """)
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]

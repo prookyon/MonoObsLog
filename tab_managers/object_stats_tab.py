@@ -56,7 +56,14 @@ class ObjectStatsTabManager:
             
             # Get unique object names and filter types
             object_names = sorted(set(row['object_name'] for row in stats_data))
-            filter_types = sorted(set(row['filter_type'] for row in stats_data))
+            # Build priority dict for filter types
+            priority_dict = {}
+            for row in stats_data:
+                ft = row['filter_type']
+                if ft not in priority_dict:
+                    priority_dict[ft] = row['priority']
+            # Filter types sorted by priority column
+            filter_types = sorted(priority_dict.keys(), key=lambda ft: priority_dict[ft])
             
             # Create a dictionary to store stats: {object_name: {filter_type: total_exposure}}
             stats_dict = {}
