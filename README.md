@@ -2,10 +2,7 @@
 
 # MonoObsLog - astrophotography logging application
 
-## ⚠️⚠️⚠️
-## This application is still under initial active development. Things can unexpectedly change and break.
-## No installer / compiled release is provided at this point - some Python knowledge is expected.
-## ⚠️⚠️⚠️
+## No installer / release is provided at this point - some Python knowledge is expected.
 
 Application for managing astrophotography observations with SQLite database storage.
 
@@ -17,6 +14,9 @@ This was an Excel workbook, but it was too limiting and I did not want to start 
 
 - **Observation Log View**
 <img src="screenshots/observations.png">
+  - All objects listed on the left for quick filtering
+  - If object coordinates have been entered then shows approximate distance from Moon and Moon illumination (with configurable warning threshold)
+  - Export button exports observation list either in Excel or HTML file
 
 - **Object statistics**: Per filter-type exposure totals for each object.
 <img src="screenshots/object_stats.png">
@@ -29,11 +29,8 @@ This was an Excel workbook, but it was too limiting and I did not want to start 
 
 ## Requirements for running development version
 
-- Python 3.8 or higher
-- PyQt6
-- matplotlib
-- astropy
-- astroplan
+- Developed with Python 3.12 - not tested with other versions
+- dependencied listed in requirements.txt
 
 ## Installation
 
@@ -75,7 +72,7 @@ This avoids the console window.
 ### Objects Tab
 - Supports querying location data from Simbad server. Or you can add the coordinates yourself. This is not required but needed for Moon angular separation calculations and altitude plot.
 - Shows altitude plot for selected object
-- Shows sky view with all known objects (make sure to set correct location in settings)
+- Shows sky view with all known objects (make sure to set correct location in settings). Might take some time to generate.
 
 ### Sessions Tab
 - Intended usage is to add sessions by the date of the evening before the session. (So if you started imaging after midnight enter the previous day) The logic for moon calculations is based on that. Why? Personal preference 🙂
@@ -93,7 +90,7 @@ This avoids the console window.
 ### Telescopes Tab
 - The technical data is not used at the moment. Maybe in the future.
 
-## Technical Details
+## Misc
 
 - **UI Framework**: PyQt6
 - **Database**: SQLite3
