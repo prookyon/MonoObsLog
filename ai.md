@@ -29,14 +29,15 @@ The application follows a **modular architecture** with clear separation of conc
 **Key Responsibilities**:
 - Loads main UI file (`mainwindow.ui`)
 - Initializes database connection with user-specified path
+- Checks and runs database migrations if needed
 - Creates and manages tab manager instances
 - Handles tab change events
 - Manages application lifecycle (close event)
 **Key Methods**:
-- `__init__(db_path)`: Sets up window, database with specified path, and tab managers
+- `__init__(db_path)`: Sets up window, database with specified path, runs migrations, and tab managers
 - `on_tab_changed(index)`: Updates UI when switching tabs
 - `closeEvent(event)`: Cleans up database connection on exit
-**Dependencies**: PyQt6, database.Database, all tab managers
+**Dependencies**: PyQt6, database.Database, all tab managers, settings, database_versioning
 **When to modify**:
 - Adding new tabs (create manager instance)
 - Adding global application behavior
@@ -132,13 +133,23 @@ The application follows a **modular architecture** with clear separation of conc
 - `set_moon_angular_separation_warning(value)`: Sets angular separation warning degrees
 - `get_database_path()`: Returns database path if set, None otherwise
 - `set_database_path(path)`: Sets database path
+- `get_database_version()`: Returns current database version
+- `set_database_version(version)`: Sets database version
 - `get_latitude()`: Returns observer latitude
 - `get_longitude()`: Returns observer longitude
 - `set_latitude()`: Sets observer latitude
 - `set_longitude()`: Sets observer longitude
 **Dependencies**: json, os
-**Storage**: settings.json file with default values (moon_illumination_warning_percent: 75, moon_angular_separation_warning_deg: 60, latitude: 0.0, longitude: 0.0). database_path has no default - user must select on first run.
+**Storage**: settings.json file with default values (moon_illumination_warning_percent: 75, moon_angular_separation_warning_deg: 60, latitude: 0.0, longitude: 0.0, database_version: 1). database_path has no default - user must select on first run.
 **When to modify**: Adding new configurable settings
+
+#### `database_versioning.py`
+**Purpose**: Database schema versioning and migration management
+**Key Components**:
+- `VERSION`: Current database schema version (integer)
+- `migrations`: List of SQL migration statements, indexed from 0
+**Migration Process**: On startup, if settings database_version < VERSION, runs pending migrations sequentially and updates version
+**When to modify**: Adding new database schema changes
 
 ### Dialog Classes
 
@@ -147,6 +158,7 @@ The application follows a **modular architecture** with clear separation of conc
 **Classes**:
 - `EditSessionDialog`: Edit session name and start date
 - `EditCameraDialog`: Edit camera specifications (name, sensor, pixel size, dimensions)
+- `EditFilterTypeDialog`: Edit filter type name and priority
 - `EditFilterDialog`: Edit filter name and filter type (using INTEGER filter_type_id)
 - `EditTelescopeDialog`: Edit telescope parameters (name, aperture, f-ratio, focal length)
 - `EditObservationDialog`: Edit observation records (all fields with ID-based combo boxes)
@@ -245,14 +257,14 @@ The application follows a **modular architecture** with clear separation of conc
 **Validation**: Ensures all numeric fields are non-zero
 
 #### `tab_managers/filter_types_tab.py`
-**Purpose**: Manages Filter Types tab (categories like Narrowband, Broadband, LRGB)
+**Purpose**: Manages Filter Types tab
 **Key Methods**:
 - `setup_tab()`: Loads UI, connects signals
 - `load_filter_types()`: Fetches and displays all filter types
 - `add_filter_type()`: Adds new filter type
-- `edit_filter_type()`: Opens input dialog to edit name
+- `edit_filter_type()`: Opens dialog to edit filter type
 - `delete_filter_type()`: Deletes filter type with confirmation
-**UI Elements**: Table, name input, add/edit/delete buttons
+**UI Elements**: Table (Name, Priority), name input, priority spin box, add/edit/delete buttons
 **Note**: Filter types are referenced by filters tab
 
 #### `tab_managers/filters_tab.py`
@@ -521,6 +533,13 @@ Key relationships:
 - All entities have auto-incrementing integer primary keys
 - Foreign key constraints enforce referential integrity at database level
 - Database queries use JOINs to retrieve display names while maintaining ID-based relationships
+
+### Database Versioning
+- Schema changes are managed through migrations in `database_versioning.py`
+- Current version tracked in settings (`database_version`)
+- Migrations run automatically on startup if version < current VERSION
+- Ensures backward compatibility and safe schema evolution
+- Database schema changes should be done both in initialization scripts and as a migration
 
 ### Foreign Key Architecture
 - **filters.filter_type_id** → filter_types.id (INTEGER)

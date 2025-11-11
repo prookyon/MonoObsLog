@@ -52,7 +52,8 @@ class Database:
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS filter_types (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL UNIQUE
+                name TEXT NOT NULL UNIQUE,
+                priority INTEGER DEFAULT 0
             )
         """)
         
@@ -352,27 +353,33 @@ class Database:
     
     # ==================== Filter Type Methods ====================
     
-    def add_filter_type(self, name: str) -> int:
+    def add_filter_type(self, name: str, priority: int = 0) -> int:
         """Add a new filter type to the database."""
         self.cursor.execute(
-            "INSERT INTO filter_types (name) VALUES (?)",
-            (name,)
+            "INSERT INTO filter_types (name, priority) VALUES (?, ?)",
+            (name, priority)
         )
         self.connection.commit()
         return self.cursor.lastrowid
     
     def get_all_filter_types(self) -> List[Dict]:
         """Get all filter types from the database."""
-        self.cursor.execute("SELECT id, name FROM filter_types ORDER BY id")
+        self.cursor.execute("SELECT id, name, priority FROM filter_types ORDER BY id")
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
     
-    def update_filter_type(self, filter_type_id: int, name: str) -> bool:
+    def update_filter_type(self, filter_type_id: int, name: str, priority: int = None) -> bool:
         """Update an existing filter type."""
-        self.cursor.execute(
-            "UPDATE filter_types SET name = ? WHERE id = ?",
-            (name, filter_type_id)
-        )
+        if priority is not None:
+            self.cursor.execute(
+                "UPDATE filter_types SET name = ?, priority = ? WHERE id = ?",
+                (name, priority, filter_type_id)
+            )
+        else:
+            self.cursor.execute(
+                "UPDATE filter_types SET name = ? WHERE id = ?",
+                (name, filter_type_id)
+            )
         self.connection.commit()
         return self.cursor.rowcount > 0
     

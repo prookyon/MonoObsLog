@@ -1,8 +1,9 @@
 """Filter Types tab manager for the observation log application."""
 
 import os
-from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QInputDialog
+from PyQt6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt6 import uic
+from dialogs import EditFilterTypeDialog
 
 
 class FilterTypesTabManager:
@@ -35,6 +36,7 @@ class FilterTypesTabManager:
         # Store references
         self.filter_types_table = filter_type_widget.findChild(QWidget, "filterTypesTable")
         self.filter_type_name_line_edit = filter_type_widget.findChild(QWidget, "nameLineEdit")
+        self.priority_spin_box = filter_type_widget.findChild(QWidget, "prioritySpinBox")
         self.add_filter_type_button = filter_type_widget.findChild(QWidget, "addFilterTypeButton")
         self.edit_filter_type_button = filter_type_widget.findChild(QWidget, "editFilterTypeButton")
         self.delete_filter_type_button = filter_type_widget.findChild(QWidget, "deleteFilterTypeButton")
@@ -47,7 +49,8 @@ class FilterTypesTabManager:
         
         # Hide ID column
         self.filter_types_table.setColumnHidden(0, True)
-        self.filter_types_table.setColumnWidth(1, 600)
+        self.filter_types_table.setColumnWidth(1, 400)
+        self.filter_types_table.setColumnWidth(2, 150)
         
         self.load_filter_types()
     
@@ -60,6 +63,7 @@ class FilterTypesTabManager:
             for row, ft in enumerate(filter_types):
                 self.filter_types_table.setItem(row, 0, QTableWidgetItem(str(ft['id'])))
                 self.filter_types_table.setItem(row, 1, QTableWidgetItem(ft['name']))
+                self.filter_types_table.setItem(row, 2, QTableWidgetItem(str(ft.get('priority', 0))))
             
             self.statusbar.showMessage(f'Loaded {len(filter_types)} filter type(s)')
         except Exception as e:
@@ -79,8 +83,10 @@ class FilterTypesTabManager:
             return
 
         try:
-            self.db.add_filter_type(name)
+            priority = self.priority_spin_box.value()
+            self.db.add_filter_type(name, priority)
             self.filter_type_name_line_edit.clear()
+            self.priority_spin_box.setValue(0)
             self.load_filter_types()
             self.statusbar.showMessage(f'Added filter type: {name}')
         except Exception as e:
@@ -97,24 +103,24 @@ class FilterTypesTabManager:
         row = self.filter_types_table.currentRow()
         filter_type_id = int(self.filter_types_table.item(row, 0).text())
         current_name = self.filter_types_table.item(row, 1).text()
+        current_priority = int(self.filter_types_table.item(row, 2).text())
 
-        new_name, ok = QInputDialog.getText(
-            self.parent, 'Edit Filter Type', 'Enter new name:', text=current_name
-        )
+        dialog = EditFilterTypeDialog(current_name, current_priority, self.parent)
+        if dialog.exec():
+            new_name, new_priority = dialog.get_values()
+            if new_name.strip():
+                new_name = new_name.strip()
+                # Check for duplicate filter type name, excluding the current filter type
+                if self.db.filter_type_name_exists(new_name, exclude_id=filter_type_id):
+                    QMessageBox.warning(self.parent, 'Warning', f'Filter type name "{new_name}" already exists. Please choose a unique filter type name.')
+                    return
 
-        if ok and new_name.strip():
-            new_name = new_name.strip()
-            # Check for duplicate filter type name, excluding the current filter type
-            if self.db.filter_type_name_exists(new_name, exclude_id=filter_type_id):
-                QMessageBox.warning(self.parent, 'Warning', f'Filter type name "{new_name}" already exists. Please choose a unique filter type name.')
-                return
-
-            try:
-                self.db.update_filter_type(filter_type_id, new_name)
-                self.load_filter_types()
-                self.statusbar.showMessage(f'Updated filter type ID {filter_type_id}')
-            except Exception as e:
-                QMessageBox.critical(self.parent, 'Error', f'Failed to update filter type: {str(e)}')
+                try:
+                    self.db.update_filter_type(filter_type_id, new_name, new_priority)
+                    self.load_filter_types()
+                    self.statusbar.showMessage(f'Updated filter type ID {filter_type_id}')
+                except Exception as e:
+                    QMessageBox.critical(self.parent, 'Error', f'Failed to update filter type: {str(e)}')
     
     def delete_filter_type(self):
         """Delete the selected filter type."""

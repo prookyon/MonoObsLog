@@ -87,6 +87,38 @@ class EditCameraDialog(QDialog):
             self.width_spin.value(),
             self.height_spin.value()
         )
+class EditFilterTypeDialog(QDialog):
+    """Dialog for editing filter type data."""
+
+    def __init__(self, name, priority, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Edit Filter Type")
+
+        layout = QFormLayout()
+
+        self.name_edit = QLineEdit(name)
+        self.priority_spin = QSpinBox()
+        self.priority_spin.setMinimum(0)
+        self.priority_spin.setMaximum(100)
+        self.priority_spin.setValue(priority)
+
+        layout.addRow("Name:", self.name_edit)
+        layout.addRow("Priority:", self.priority_spin)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addRow(buttons)
+
+        self.setLayout(layout)
+
+    def get_values(self):
+        """Return the edited values."""
+        return self.name_edit.text(), self.priority_spin.value()
+
+
 
 
 class EditFilterDialog(QDialog):

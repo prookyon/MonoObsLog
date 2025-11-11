@@ -18,6 +18,8 @@ from tab_managers import (
     SettingsTabManager,
     AboutTabManager,
 )
+import settings
+from database_versioning import VERSION, migrations
 
 
 class MainWindow(QMainWindow):
@@ -33,7 +35,25 @@ class MainWindow(QMainWindow):
         
         # Initialize database with the specified path
         self.db = Database(db_path)
-        
+
+        # Check and run database migrations if needed
+        current_version = settings.get_database_version()
+        if current_version < VERSION:
+            try:
+                for i in range(current_version, VERSION):
+                    migration_sql = migrations[i]
+                    self.db.cursor.execute(migration_sql)
+                    self.statusbar.showMessage(f'Running migration {i+1}...')
+                self.db.connection.commit()
+                settings.set_database_version(VERSION)
+                self.statusbar.showMessage(f'Database migrated to version {VERSION}')
+            except Exception as e:
+                from PyQt6.QtWidgets import QMessageBox
+                QMessageBox.critical(self, 'Migration Error', f'Failed to migrate database: {str(e)}')
+                # Close and exit on migration failure
+                self.db.close()
+                raise
+
         # Initialize tab managers
         self.objects_tab = ObjectsTabManager(self, self.db, self.tabWidget, self.statusbar)
         self.sessions_tab = SessionsTabManager(self, self.db, self.tabWidget, self.statusbar)

@@ -1,5 +1,6 @@
 import json
 import os
+from database_versioning import VERSION
 
 SETTINGS_FILE = 'settings.json'
 
@@ -7,7 +8,8 @@ DEFAULT_SETTINGS = {
     'moon_illumination_warning_percent': 75,
     'moon_angular_separation_warning_deg': 60,
     'latitude': 0.0,
-    'longitude': 0.0
+    'longitude': 0.0,
+    'database_version': VERSION
     # Note: database_path intentionally has no default - user must select on first run
 }
 
@@ -84,4 +86,14 @@ def set_database_path(path):
     """Set database path."""
     settings = load_settings()
     settings['database_path'] = path
+    save_settings(settings)
+
+def get_database_version():
+    """Get database version."""
+    return load_settings()['database_version']
+
+def set_database_version(version):
+    """Set database version."""
+    settings = load_settings()
+    settings['database_version'] = version
     save_settings(settings)
