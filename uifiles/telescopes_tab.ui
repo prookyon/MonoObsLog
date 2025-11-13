@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CameraTab</class>
- <widget class="QWidget" name="CameraTab">
+ <class>TelescopesTab</class>
+ <widget class="QWidget" name="TelescopeTab">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>302</width>
-    <height>384</height>
+    <width>337</width>
+    <height>356</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -23,33 +23,47 @@
      <item row="0" column="1">
       <widget class="QLineEdit" name="nameLineEdit">
        <property name="placeholderText">
-        <string>Enter camera name</string>
+        <string>Enter telescope name</string>
        </property>
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="sensorLabel">
+      <widget class="QLabel" name="apertureLabel">
        <property name="text">
-        <string>Sensor:</string>
+        <string>Aperture (mm):</string>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="sensorLineEdit">
-       <property name="placeholderText">
-        <string>Enter sensor type</string>
+      <widget class="QSpinBox" name="apertureSpinBox">
+       <property name="maximum">
+        <number>99999</number>
        </property>
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="pixelSizeLabel">
+      <widget class="QLabel" name="focalLengthLabel">
        <property name="text">
-        <string>Pixel Size (μm):</string>
+        <string>Focal Length (mm):</string>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QDoubleSpinBox" name="pixelSizeSpinBox">
+      <widget class="QSpinBox" name="focalLengthSpinBox">
+       <property name="maximum">
+        <number>99999</number>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="fRatioLabel">
+       <property name="text">
+        <string>F-ratio:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QDoubleSpinBox" name="fRatioSpinBox">
        <property name="decimals">
         <number>2</number>
        </property>
@@ -61,45 +75,17 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="widthLabel">
+     <item row="0" column="2" rowspan="4">
+      <widget class="QPushButton" name="addTelescopeButton">
        <property name="text">
-        <string>Width (px):</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QSpinBox" name="widthSpinBox">
-       <property name="maximum">
-        <number>99999</number>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="heightLabel">
-       <property name="text">
-        <string>Height (px):</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QSpinBox" name="heightSpinBox">
-       <property name="maximum">
-        <number>99999</number>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="2" rowspan="5">
-      <widget class="QPushButton" name="addCameraButton">
-       <property name="text">
-        <string>Add Camera</string>
+        <string>Add Telescope</string>
        </property>
       </widget>
      </item>
     </layout>
    </item>
    <item>
-    <widget class="QTableWidget" name="camerasTable">
+    <widget class="QTableWidget" name="telescopesTable">
      <property name="editTriggers">
       <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
      </property>
@@ -127,22 +113,17 @@
      </column>
      <column>
       <property name="text">
-       <string>Sensor</string>
+       <string>Aperture</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>Pixel Size</string>
+       <string>F-ratio</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>Width</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Height</string>
+       <string>Focal Length</string>
       </property>
      </column>
     </widget>
@@ -163,14 +144,14 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="editCameraButton">
+      <widget class="QPushButton" name="editTelescopeButton">
        <property name="text">
         <string>Edit Selected</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="deleteCameraButton">
+      <widget class="QPushButton" name="deleteTelescopeButton">
        <property name="text">
         <string>Delete Selected</string>
        </property>

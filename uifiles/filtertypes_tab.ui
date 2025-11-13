@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>FilterTypeTab</class>
+ <class>FilterTypesTab</class>
  <widget class="QWidget" name="FilterTypeTab">
   <property name="geometry">
    <rect>

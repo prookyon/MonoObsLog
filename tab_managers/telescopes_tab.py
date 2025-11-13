@@ -31,7 +31,7 @@ class TelescopesTabManager:
         """Setup the Telescopes tab."""
         telescope_widget = QWidget()
         base_dir = os.path.dirname(os.path.dirname(__file__))
-        ui_path = os.path.join(base_dir, 'uifiles', 'telescope_tab.ui')
+        ui_path = os.path.join(base_dir, 'uifiles', 'telescopes_tab.ui')
         uic.loadUi(ui_path, telescope_widget)
         self.tab_widget.addTab(telescope_widget, "Telescopes")
         

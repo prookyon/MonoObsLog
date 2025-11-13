@@ -3,12 +3,12 @@
 from .objects_tab import ObjectsTabManager
 from .sessions_tab import SessionsTabManager
 from .cameras_tab import CamerasTabManager
-from .filter_types_tab import FilterTypesTabManager
+from .filtertypes_tab import FilterTypesTabManager
 from .filters_tab import FiltersTabManager
 from .telescopes_tab import TelescopesTabManager
 from .observations_tab import ObservationsTabManager
-from .object_stats_tab import ObjectStatsTabManager
-from .monthly_stats_tab import MonthlyStatsTabManager
+from .objectstats_tab import ObjectStatsTabManager
+from .monthlystats_tab import MonthlyStatsTabManager
 from .settings_tab import SettingsTabManager
 from .about_tab import AboutTabManager
 

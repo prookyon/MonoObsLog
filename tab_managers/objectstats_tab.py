@@ -31,7 +31,7 @@ class ObjectStatsTabManager:
         """Setup the Object Stats tab."""
         stats_widget = QWidget()
         base_dir = os.path.dirname(os.path.dirname(__file__))
-        ui_path = os.path.join(base_dir, 'uifiles', 'object_stats_tab.ui')
+        ui_path = os.path.join(base_dir, 'uifiles', 'objectstats_tab.ui')
         uic.loadUi(ui_path, stats_widget)
         self.tab_widget.addTab(stats_widget, "Object Stats")
         

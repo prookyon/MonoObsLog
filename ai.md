@@ -256,7 +256,7 @@ The application follows a **modular architecture** with clear separation of conc
 **UI Elements**: Table, name/sensor inputs, spin boxes for pixel size/dimensions
 **Validation**: Ensures all numeric fields are non-zero
 
-#### `tab_managers/filter_types_tab.py`
+#### `tab_managers/filtertypes_tab.py`
 **Purpose**: Manages Filter Types tab
 **Key Methods**:
 - `setup_tab()`: Loads UI, connects signals
@@ -322,7 +322,7 @@ The application follows a **modular architecture** with clear separation of conc
 - **Excel Export**: "Export to Excel" button exports current filtered observations with same columns as table, includes formatted headers, auto-sized columns, and date-stamped filenames
 - **HTML Export**: "Export to HTML" action exports observations using template file with professional styling, warning highlighting, and responsive design
 
-#### `tab_managers/object_stats_tab.py`
+#### `tab_managers/objectstats_tab.py`
 **Purpose**: Manages Object Stats tab (cumulative exposure statistics by object and filter type)
 **Key Methods**:
 - `setup_tab()`: Loads UI, gets table reference, loads initial data
@@ -336,7 +336,7 @@ The application follows a **modular architecture** with clear separation of conc
 - Includes Total column summing all exposures per object with conditional formatting
 - Auto-refreshes when tab is selected
 
-#### `tab_managers/monthly_stats_tab.py`
+#### `tab_managers/monthlystats_tab.py`
 **Purpose**: Manages Monthly Stats tab (cumulative exposure statistics by month)
 **Key Methods**:
 - `setup_tab()`: Loads UI, creates matplotlib figure and canvas, integrates with PyQt6
@@ -375,15 +375,15 @@ The application follows a **modular architecture** with clear separation of conc
 
 The application uses Qt Designer `.ui` files for layouts:
 - `mainwindow.ui`: Main application window with tab widget
-- `object_tab.ui`: Objects tab layout
-- `session_tab.ui`: Sessions tab layout
-- `camera_tab.ui`: Cameras tab layout
-- `filter_type_tab.ui`: Filter Types tab layout
-- `filter_tab.ui`: Filters tab layout
-- `telescope_tab.ui`: Telescopes tab layout
-- `observation_tab.ui`: Observations tab layout
-- `object_stats_tab.ui`: Object Stats tab layout
-- `monthly_stats_tab.ui`: Monthly Stats tab layout
+- `objects_tab.ui`: Objects tab layout
+- `sessions_tab.ui`: Sessions tab layout
+- `cameras_tab.ui`: Cameras tab layout
+- `filtertypes_tab.ui`: Filter Types tab layout
+- `filters_tab.ui`: Filters tab layout
+- `telescopes_tab.ui`: Telescopes tab layout
+- `observations_tab.ui`: Observations tab layout
+- `objectstats_tab.ui`: Object Stats tab layout
+- `monthlystats_tab.ui`: Monthly Stats tab layout
 - `settings_tab.ui`: Settings tab layout
 - `about_tab.ui`: About tab layout
 

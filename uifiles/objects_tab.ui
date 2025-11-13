@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ObjectTab</class>
+ <class>ObjectsTab</class>
  <widget class="QWidget" name="ObjectTab">
   <property name="geometry">
    <rect>
