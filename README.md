@@ -2,7 +2,8 @@
 
 # MonoObsLog - astrophotography logging application
 
-## No installer / release is provided at this point - some Python knowledge is expected.
+## No installer / release is provided - some Python knowledge is expected.
+## Additional updates unlikely as I am rebuilding this in C++ due to annoying slowness in Python
 
 Application for managing astrophotography observations with SQLite database storage.
 
